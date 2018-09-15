@@ -6,9 +6,10 @@
   "dependencies": {
     "animejs": "^2.2.0",
     "crypto-js": "^3.1.9-1",
-    "react": "^16.2.0",
-    "react-dom": "^16.2.0",
+    "react": "^16.5.0",
+    "react-dom": "^16.5.0",
     "react-scripts": "1.1.1",
+    "react-spring": "5.7.2",
     "request": "^2.88.0"
   },
   "scripts": {

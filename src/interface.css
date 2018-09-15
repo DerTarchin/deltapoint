@@ -1,0 +1,44 @@
+.interface {
+  position: absolute;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  background: rgba(0,0,0,.25);
+}
+
+.interface-header {
+  height: 50px;
+  width: 100vw;
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+
+.interface-content {
+  height: 100%;
+  width: 100vw;
+  flex-grow: 1;
+  display: flex;
+}
+
+.tile-col { width: 50% }
+
+.tile-container {
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.tile-col.left .tile-container { padding-left: 16px }
+.tile-col.right .tile-container { padding-right: 16px }
+.tile-col :last-child { padding-bottom: 16px }
+
+.tile-container .tile {
+  height: 100%;
+  width: 100%;
+  padding: 20px;
+  background: rgba(0,0,0,.2);
+  border-radius: 10px;
+}
+
+#portfolio, #balances, #volume { height: 33.3333333% }
+#breakdown, #charts { height: 50% }

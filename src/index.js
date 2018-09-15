@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { ContentEditable } from './components';
+import Interface from './Interface'
 import { decrypt } from './utils/decrypt';
-import anime from 'animejs'
+import anime from 'animejs';
+// import { Spring, animated } from 'react-spring';
 
 require('./app.css');
 
@@ -10,11 +12,14 @@ const REQUEST = require('request');
 const DATA_URL = 'http://hizalcelik.com/dev/deltapoint.appdata.encrypted.json';
 const IS_ENTER = e => (e.key || e.keyCode) === 'Enter' || e.which === 13;
 
+const LOGIN_ANIM_DURATION = 1000;
+
 class App extends Component {
   state = {
     data: '',
     encrypted: true,
-    unlockError: ''
+    unlockError: '',
+    showUnlock: true,
   };
   meta = {}
 
@@ -24,17 +29,20 @@ class App extends Component {
       if(error) console.log('error:', error);
       this.setState({ data: JSON.parse(body).encryptedMsg });
     });
-    // activate anime.js for unlock dialog
-    this.meta.loginAnime = anime({
-      targets: this.refs.unlock,
-      opacity: [0,1],
-      easing: 'easeInExpo',
-      duration: 1000
-    });
-    this.refs.unlockInput.focus();
+    if(this.state.encrypted) {
+      // activate anime.js for unlock dialog
+      this.meta.loginAnime = anime({
+        targets: this.refs.unlock,
+        opacity: [0,1],
+        easing: 'easeInExpo',
+        duration: LOGIN_ANIM_DURATION,
+      });
+      this.refs.unlockInput.focus();
+    }
   }
 
   unlock = passphrase => {
+    passphrase = "ord-mantell"
     if(!passphrase || !this.state.encrypted) return this.refs.unlockInput.focus();
     if(!this.state.data) {
       this.refs.unlockInput.focus();
@@ -48,9 +56,14 @@ class App extends Component {
       this.setState({ unlockError: 'Incorrect passphrase.'})
       return;
     }
-    this.setState({ data, encrypted: false });
-    this.meta.loginAnime.reverse();
-    this.meta.loginAnime.play();
+    this.meta.loginAnime = anime({
+      targets: this.refs.unlock,
+      opacity: [1,0],
+      easing: 'easeOutQuad',
+      duration: LOGIN_ANIM_DURATION / 2,
+      complete: anim => this.setState({ showUnlock: false })
+    });
+    this.setState({ data, encrypted: false })
   }
 
   hideUnlockError = e => {
@@ -61,20 +74,23 @@ class App extends Component {
 
   render = () => {
     return (
-      <div>
-        <div ref="unlock" className="unlock">
-          <img className="logo" alt="" src={require('./static/logo.svg')}/>
-          <ContentEditable
-            ref="unlockInput"
-            className="input"
-            // onBlur={() => this.refs.unlockInput.focus()}
-            onKeyDown={e => { if(IS_ENTER(e)) this.unlock(e.target.textContent) }}
-          />
-          {
-            !this.state.unlockError ? null :
-            <div className="unlock-error" onClick={this.hideUnlockError}>{this.state.unlockError}</div>
-          }
-        </div>
+      <div className={`app ${window.screen.width <= 767 ? 'mobile' : ''}`}>
+        {
+          !this.state.showUnlock ? null : 
+          <div ref="unlock" className="unlock">
+            <img className="logo" alt="" src={require('./static/logo.svg')}/>
+            <ContentEditable
+              ref="unlockInput"
+              className="input"
+              onKeyDown={e => { if(IS_ENTER(e)) this.unlock(e.target.textContent) }}
+            />
+            {
+              !this.state.unlockError ? null :
+              <div className="unlock-error" onClick={this.hideUnlockError}>{this.state.unlockError}</div>
+            }
+          </div>
+        }
+        { this.state.encrypted ? null : <Interface data={this.state.data}/> }
       </div>
     )
   }

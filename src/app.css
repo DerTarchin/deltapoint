@@ -26,6 +26,7 @@ body {
   align-items: center;
   background: rgba(0,0,0,.6);
   opacity: 0;
+  overflow: hidden;
 }
 .unlock .input {
   text-align: center;
@@ -40,9 +41,12 @@ body {
   align-items: center;
   z-index: 10;
 }
+.mobile .unlock .input {
+  font-size: 1em;
+}
 .unlock .input:empty:before {
   content: 'pass';
-  opacity: .5;
+  opacity: .2;
   margin-left: 1em;
 }
 .unlock .input:after {
@@ -72,3 +76,16 @@ body {
 }
 .unlock-error:hover { opacity: .8 }
 .unlock-error.hide { opacity: 0 }
+@media only screen and (max-width: 767px) {
+  .unlock .input {
+    font-size: 1.2em;
+    letter-spacing: .5em;
+    padding-left: .5em;
+  }
+  .unlock .input:empty:before {
+    margin-left: .5em;
+  }
+  .unlock .logo {
+    margin-bottom: 25px;
+  }
+}
