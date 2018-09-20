@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Spring, animated, config } from 'react-spring';
+import { Spring } from 'react-spring';
 import { TimingAnimation, Easing } from 'react-spring/dist/addons';
 
 export default class DurationTrail extends Component {

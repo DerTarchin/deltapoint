@@ -1,21 +1,55 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:100,300,500,700,900');
+
 * {
   outline: none;
   box-sizing: border-box;
 }
 
+html {
+  background: #057378;
+}
+
 body {
   margin: 0;
   padding: 0;
+  font-family: 'Montserrat', sans-serif;
   color: white;
-  background: rgba(20,207,204,1);
-  background: linear-gradient(135deg, rgba(20,207,204,1) 0%, rgba(56,101,173,1) 49%, rgba(130,69,150,1) 100%);
   width: 100%;
   height: 100vh;
+  font-size: 15px;
+  z-index: 10;
+  position: fixed;
+  overflow: hidden;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+}
+
+.app {
+  position: fixed;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(20,207,204,1);
+  background: linear-gradient(135deg, rgba(20,207,204,1), rgba(56,101,173,1), rgba(130,69,150,1));
+}
+
+ @media screen and (orientation:landscape) {
+  x.mobile.app {
+    height: 100vw;
+    width: 100vh;
+    transform: translateX(-100%) rotate(-90deg); /* W3C */  
+    transform-origin: right top;
+  }
 }
 
 .unlock {
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
   position: absolute;
   left: 0;
   top: 0;
@@ -33,6 +67,7 @@ body {
   -webkit-text-security: disc;
   cursor: text;
   font-size: 2em;
+  font-weight: 900;
   letter-spacing: 1em;
   color: white;
   padding-left: 1em;
@@ -40,9 +75,6 @@ body {
   justify-content: center;
   align-items: center;
   z-index: 10;
-}
-.mobile .unlock .input {
-  font-size: 1em;
 }
 .unlock .input:empty:before {
   content: 'pass';
@@ -52,15 +84,15 @@ body {
 .unlock .input:after {
   content: '';
   display: block;
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
   position: fixed;
   left: 0;
   top: 0;
   z-index: -1;
 }
 .unlock .logo {
-  width: 40vw;
+  width: 40%;
   margin-bottom: 50px;
 }
  .unlock-error {
@@ -87,5 +119,23 @@ body {
   }
   .unlock .logo {
     margin-bottom: 25px;
+    width: 60%;
   }
+}
+
+/* SWIPE LIBRARY */
+.swipe {
+  /*overflow: hidden;*/
+  visibility: hidden;
+  position: relative;
+}
+.swipe-wrap {
+  /*overflow: hidden;*/
+  position: relative;
+}
+.swipe-wrap > div {
+  float: left;
+  width: 100%;
+  position: relative;
+  /*overflow: hidden;*/
 }

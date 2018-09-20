@@ -2,9 +2,10 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { ContentEditable } from './components';
 import Interface from './Interface'
-import { decrypt } from './utils/decrypt';
+import InterfaceMobile from './InterfaceMobile'
+import { decrypt } from './utils';
 import anime from 'animejs';
-// import { Spring, animated } from 'react-spring';
+import moment from 'moment';
 
 require('./app.css');
 
@@ -14,27 +15,67 @@ const IS_ENTER = e => (e.key || e.keyCode) === 'Enter' || e.which === 13;
 
 const LOGIN_ANIM_DURATION = 1000;
 
+const NOW = moment();
+const DATE_OPTS = [
+  {
+    range_count: '1',
+    range_type: 'M',
+    start: NOW.clone().subtract(1, 'months'),
+    end: NOW,
+  },
+  {
+    range_count: '3',
+    range_type: 'M',
+    start: NOW.clone().subtract(3, 'months'),
+    end: NOW,
+  },
+  {
+    range_count: '6',
+    range_type: 'M',
+    start: NOW.clone().subtract(6, 'months'),
+    end: NOW,
+  },
+  {
+    range_count: '1',
+    range_type: 'Y',
+    start: NOW.clone().subtract(12, 'months'),
+    end: NOW,
+  }
+];
+
 class App extends Component {
   state = {
-    data: '',
+    // app init
+    data: null,
     encrypted: true,
     unlockError: '',
     showUnlock: true,
+
+    // app settings
+    activeDateOpt: 0,
+    activeDates: [DATE_OPTS[0].start, DATE_OPTS[0].end],
   };
   meta = {}
+
+  componentWillMount = () => {
+    // disable overscroll on mobile
+    document.addEventListener('touchmove', e => e.preventDefault(), false);
+  }
 
   componentDidMount = () => {
     // retrieve encrypted data
     REQUEST(DATA_URL, (error, response, body) => {
       if(error) console.log('error:', error);
-      this.setState({ data: JSON.parse(body).encryptedMsg });
+      this.meta.encryptedMsg = JSON.parse(body).encryptedMsg;
+      // dev
+      setTimeout(() => this.unlock('ord-mantell'), 500);
     });
     if(this.state.encrypted) {
       // activate anime.js for unlock dialog
       this.meta.loginAnime = anime({
         targets: this.refs.unlock,
         opacity: [0,1],
-        easing: 'easeInExpo',
+        easing: 'easeInQuad',
         duration: LOGIN_ANIM_DURATION,
       });
       this.refs.unlockInput.focus();
@@ -42,28 +83,38 @@ class App extends Component {
   }
 
   unlock = passphrase => {
-    passphrase = "ord-mantell"
     if(!passphrase || !this.state.encrypted) return this.refs.unlockInput.focus();
-    if(!this.state.data) {
+    if(!this.meta.encryptedMsg) {
       this.refs.unlockInput.focus();
       this.setState({ unlockError: 'Unable to retrieve data.'})
       return;
     }
-    const data = decrypt(this.state.data, passphrase);
+    const data = decrypt(this.meta.encryptedMsg, passphrase);
     if(!data) {
       this.refs.unlockInput.clearContent();
       this.refs.unlockInput.focus();
       this.setState({ unlockError: 'Incorrect passphrase.'})
       return;
     }
-    this.meta.loginAnime = anime({
-      targets: this.refs.unlock,
-      opacity: [1,0],
-      easing: 'easeOutQuad',
-      duration: LOGIN_ANIM_DURATION / 2,
-      complete: anim => this.setState({ showUnlock: false })
-    });
-    this.setState({ data, encrypted: false })
+
+    // parse data
+    const accounts = Object.keys(data),
+          activeAccount = accounts[0];
+    this.meta.decryptedMsg = data;
+    this.setState({ 
+      data: data[activeAccount], 
+      accounts, 
+      activeAccount, 
+      encrypted: false 
+    }, () => {
+      this.meta.loginAnime = anime({
+        targets: this.refs.unlock,
+        opacity: [1,0],
+        easing: 'easeOutQuad',
+        duration: LOGIN_ANIM_DURATION / 2,
+        complete: anim => this.setState({ showUnlock: false })
+      });
+    });    
   }
 
   hideUnlockError = e => {
@@ -72,9 +123,35 @@ class App extends Component {
     setTimeout(() => this.setState({ unlockError: '' }), 150);
   }
 
+  onDateChange = (type, val) => {
+    // console.log(type, val);
+    if(type === 'opt') {
+      this.setState({ 
+        activeDateOpt: val, 
+        activeDates: [DATE_OPTS[val].start, DATE_OPTS[val].end] 
+      });
+    }
+    else {
+      this.setState({
+        activeDateOpt: -1,
+        activeDates: val
+      })
+    }
+  }
+
   render = () => {
+    // const isMobile = true; 
+    const isMobile = window.screen.width <= 767;
+    const interfaceProps = this.state.encrypted ? {} : {
+      data: this.state.data,
+      dateOpts: DATE_OPTS,
+      activeDateOpt: this.state.activeDateOpt,
+      activeDates: this.state.activeDates,
+      onDateChange: this.onDateChange,
+    }
+
     return (
-      <div className={`app ${window.screen.width <= 767 ? 'mobile' : ''}`}>
+      <div className={`app ${isMobile ? 'mobile' : ''}`}>
         {
           !this.state.showUnlock ? null : 
           <div ref="unlock" className="unlock">
@@ -90,7 +167,10 @@ class App extends Component {
             }
           </div>
         }
-        { this.state.encrypted ? null : <Interface data={this.state.data}/> }
+        { 
+          this.state.encrypted ? null : 
+          isMobile ? <InterfaceMobile {...interfaceProps}/> : <Interface {...interfaceProps}/> 
+        }
       </div>
     )
   }

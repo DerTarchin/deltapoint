@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 // require('./interface.css');
 
-export default class Volume extends Component {
+export default class Volatility extends Component {
   state = {};
   meta = {}
 
@@ -12,8 +12,8 @@ export default class Volume extends Component {
 
   render = () => {
     return (
-      <div className="tile-container" id={this.props.id}>
-        <div className="tile">Hello World</div>
+      <div className="tile-container" id="volatility">
+        <div className="tile">VOLATILITY</div>
       </div>
     )
   }

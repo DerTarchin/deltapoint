@@ -12,8 +12,8 @@ export default class Charts extends Component {
 
   render = () => {
     return (
-      <div className="tile-container" id={this.props.id}>
-        <div className="tile">Hello World</div>
+      <div className="tile-container" id="charts">
+        <div className="tile">CHARTS</div>
       </div>
     )
   }
