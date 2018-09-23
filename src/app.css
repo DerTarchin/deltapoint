@@ -38,13 +38,28 @@ body {
   background: linear-gradient(135deg, rgba(20,207,204,1), rgba(56,101,173,1), rgba(130,69,150,1));
 }
 
+.app > .rotate {
+  display: none;
+  height: 100%;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  /*background: rgba(0,0,0,.6);*/
+}
+
+.app > .rotate svg { height: 20vh; width: 20vh; }
+.app > .rotate .primary { fill: rgba(255,255,255,0.5); }
+.app > .rotate .secondary { fill: rgba(255,255,255,0.1); }
+
  @media screen and (orientation:landscape) {
-  x.mobile.app {
+/*  .mobile.app {
     height: 100vw;
     width: 100vh;
-    transform: translateX(-100%) rotate(-90deg); /* W3C */  
+    transform: translateX(-100%) rotate(-90deg); 
     transform-origin: right top;
-  }
+  }*/
+  .mobile.app > :not(.rotate) { display: none; }
+  .app > .rotate { display: flex; }
 }
 
 .unlock {

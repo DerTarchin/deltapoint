@@ -8,6 +8,10 @@ import {
   Breakdown, 
   Charts 
 } from './components';
+import {
+  frmt,
+  sepFrmt,
+} from './utils'
 
 require('./interface.css');
 
@@ -122,12 +126,17 @@ export default class InterfaceMobile extends Component {
   }
 
   render = () => {
+    const dateFrom = this.props.activeDates[0],
+          dateTo = this.props.activeDates[1],
+          formatted = frmt(dateFrom, dateTo),
+          datesRender = (dateFrom === dateTo ? formatted[0] : `${formatted[0]} - ${formatted[1]}`);
+
     return (
       <div className="interface">
         <div className="bg" />
 
         <div className="interface-header">
-          <div className="date">{this.props.activeDateRangeOpt[0]}<span>{this.props.activeDateRangeOpt[1]}</span></div>
+          <div className="date">{datesRender}</div>
         </div>
 
         <div className="interface-content">
@@ -135,9 +144,9 @@ export default class InterfaceMobile extends Component {
             <div className="swipe-shrink">
               <div ref="account" className="swipe">
                 <div className="swipe-wrap">
-                  <div style={{transform: 'scale(0.8)', transformOrigin: 'right center'}}><Portfolio mobile data={this.props.data} /></div>
-                  <div><Balances mobile data={this.props.data} /></div>
-                  <div style={{transform: 'scale(0.8)', transformOrigin: 'left center'}}><Volatility mobile data={this.props.data} /></div>
+                  <div style={{transform: 'scale(0.8)', transformOrigin: 'right center'}}><Portfolio mobile {...this.props} /></div>
+                  <div><Balances mobile {...this.props} /></div>
+                  <div style={{transform: 'scale(0.8)', transformOrigin: 'left center'}}><Volatility mobile {...this.props} /></div>
                 </div>
               </div>
             </div>
@@ -146,8 +155,8 @@ export default class InterfaceMobile extends Component {
             <div className="swipe-shrink">
               <div ref="positions" className="swipe">
                 <div className="swipe-wrap">
-                  <div style={{transform: 'scale(0.8)', transformOrigin: 'right center'}}><Breakdown mobile data={this.props.data} /></div>
-                  <div><Charts mobile data={this.props.data} /></div>
+                  <div style={{transform: 'scale(0.8)', transformOrigin: 'right center'}}><Breakdown mobile {...this.props} /></div>
+                  <div><Charts mobile {...this.props} /></div>
                 </div>
               </div>
             </div>

@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import moment from 'moment';
+import { round } from '../utils';
 
 require('./balances.css');
 
@@ -13,16 +15,14 @@ export default class Balances extends Component {
   toggle = () => {}
 
   render = () => {
-    const { data } = this.props;
+    const { data, activeDates } = this.props;
+    const latest = data[activeDates[1].format('L')];
+
     return (
       <div className="tile-container" id="balances">
         <div className="tile">
           BALANCES<br/><br/>
-          {
-            this.props.activeDates[0] === this.props.activeDates[1] ? 
-            this.props.activeDates[0].format('MMM DD, YYYY') :
-            `${this.props.activeDates[0].format('MMM DD, YYYY')} - ${this.props.activeDates[1].format('MMM DD, YYYY')}`
-          }
+          { latest ? `$${round(latest.balance, 2)}` : 'no data' } 
         </div>
       </div>
     )

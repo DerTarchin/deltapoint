@@ -3,9 +3,12 @@ import ReactDOM from 'react-dom';
 import { ContentEditable } from './components';
 import Interface from './Interface'
 import InterfaceMobile from './InterfaceMobile'
-import { decrypt } from './utils';
+import { decrypt, debounce } from './utils';
 import anime from 'animejs';
 import moment from 'moment';
+import {
+  rotatephone,
+} from './utils/icons';
 
 require('./app.css');
 
@@ -101,11 +104,28 @@ class App extends Component {
     const accounts = Object.keys(data),
           activeAccount = accounts[0];
     this.meta.decryptedMsg = data;
+    this.meta.acctData = data[activeAccount];
+    
+    // reset date ranges
+    const lastUpdated = moment(this.meta.acctData.meta.last_updated, 'L');
+    while(!lastUpdated.day() || lastUpdated.day() === 6) lastUpdated.subtract(1, 'days');
+    const startDate = moment(this.meta.acctData.meta.start_date, 'L');
+    DATE_OPTS[0].start = lastUpdated.clone().subtract(1,'months');
+    DATE_OPTS[1].start = lastUpdated.clone().subtract(3,'months');
+    DATE_OPTS[2].start = lastUpdated.clone().subtract(6,'months');
+    DATE_OPTS[3].start = lastUpdated.clone().subtract(1,'years');
+    DATE_OPTS.forEach(d => {
+      if(d.start.isBefore(startDate)) d.start = startDate;
+      d.end = lastUpdated;
+    });
+
     this.setState({ 
-      data: data[activeAccount], 
+      activeData: this.updateData(), 
       accounts, 
       activeAccount, 
-      encrypted: false 
+      lastUpdated,
+      activeDates: [DATE_OPTS[0].start, DATE_OPTS[0].end],
+      encrypted: false,
     }, () => {
       this.meta.loginAnime = anime({
         targets: this.refs.unlock,
@@ -123,27 +143,38 @@ class App extends Component {
     setTimeout(() => this.setState({ unlockError: '' }), 150);
   }
 
+  updateData = dates => {
+    dates = dates || this.state.activeDates;
+    const { acctData } = this.meta;
+    const data = { meta: acctData.meta };
+    for(const day = dates[0].clone(); day.isSameOrBefore(dates[1]); day.add(1, 'days')) {
+      const formatted = day.format('L');
+      data[formatted] = acctData[formatted];
+    }
+    return data;
+  }
+
   onDateChange = (type, val) => {
-    // console.log(type, val);
-    if(type === 'opt') {
+    debounce(() => {
+      const isOpt = type === 'opt',
+            activeDateOpt = isOpt ? val : -1,
+            activeDates = isOpt ? [DATE_OPTS[val].start, DATE_OPTS[val].end] : val;
+      const activeData = this.updateData(activeDates);
+
       this.setState({ 
-        activeDateOpt: val, 
-        activeDates: [DATE_OPTS[val].start, DATE_OPTS[val].end] 
+        activeDateOpt,
+        activeDates,
+        activeData
       });
-    }
-    else {
-      this.setState({
-        activeDateOpt: -1,
-        activeDates: val
-      })
-    }
+    }, 0);
   }
 
   render = () => {
-    // const isMobile = true; 
-    const isMobile = window.screen.width <= 767;
+    const isMobile = true; 
+    // const isMobile = window.screen.width <= 767;
     const interfaceProps = this.state.encrypted ? {} : {
-      data: this.state.data,
+      data: this.state.activeData,
+      lastUpdated: this.state.lastUpdated,
       dateOpts: DATE_OPTS,
       activeDateOpt: this.state.activeDateOpt,
       activeDates: this.state.activeDates,
@@ -171,6 +202,7 @@ class App extends Component {
           this.state.encrypted ? null : 
           isMobile ? <InterfaceMobile {...interfaceProps}/> : <Interface {...interfaceProps}/> 
         }
+        <div className="rotate">{rotatephone}</div>
       </div>
     )
   }

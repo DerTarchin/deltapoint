@@ -1,4 +1,12 @@
 import { decrypt } from './decrypt';
+import { debounce } from './debounce';
+import {
+  formatNumber,
+  splitNumberSuffix,
+  getFullNumber,
+  getNumberProperties,
+  round,
+} from './numformat';
 
 const pagePos = el => {
   const pos = {x: 0, y: 0};
@@ -65,5 +73,11 @@ export {
   decrypt,
   pagePos,
   frmt, 
-  sepFrmt
+  sepFrmt,
+  debounce,
+  formatNumber,
+  splitNumberSuffix,
+  getFullNumber,
+  getNumberProperties,
+  round,
 }
