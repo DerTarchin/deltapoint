@@ -7,6 +7,10 @@ import {
   getNumberProperties,
   round,
 } from './numformat';
+import {
+  getColorProperties,
+  getAlpha
+} from './colorformat';
 
 const pagePos = el => {
   const pos = {x: 0, y: 0};
@@ -42,14 +46,14 @@ const sepFrmt = (start, end) => {
     y: start.year(),
     m: start.format('MMM'),
     M: start.format('MMMM'),
-    d: start.date(),
+    d: start.format('DD'),
     useYear: start.year() !== year
   };
   if(end && !start) return {
     y: end.year(),
     m: end.format('MMM'),
     M: end.format('MMMM'),
-    d: end.date(),
+    d: end.format('DD'),
     useYear: end.year() !== year
   };
   return [
@@ -69,6 +73,8 @@ const sepFrmt = (start, end) => {
   ]
 }
 
+const p5map = (val, inMin, inMax, outMin, outMax) => outMin + (outMax - outMin) * ((val - inMin) / (inMax - inMin))
+
 export {
   decrypt,
   pagePos,
@@ -80,4 +86,7 @@ export {
   getFullNumber,
   getNumberProperties,
   round,
+  getAlpha,
+  getColorProperties,
+  p5map,
 }

@@ -6,14 +6,15 @@
   max-height: 1200px;
   display: flex;
   flex-direction: column;
-  user-select: none;
 }
 
 .interface > .bg {
+  display: none;
+  user-select: none;
   z-index: -10;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,.25);
+  background: rgba(0,0,0,.15);
   position: fixed;
   top: 0;
   left: 0;
@@ -46,7 +47,7 @@
   height: 100%;
   width: 100%;
   padding: 20px;
-  background: rgba(0,0,0,.2);
+  background: rgba(0,0,30,.3);
   box-shadow: 0px 0px 18px 0px rgba(0,0,0,0.1);
   border-radius: 10px;
 }
@@ -65,13 +66,14 @@
 
 .mobile .tile-container { height: 100%!important }
 .swipe-shrink, .swipe, .swipe-wrap, .swipe-wrap > div { height: 100% }
-.mobile .interface-content { flex-direction: column; overflow: hidden }
+.mobile .interface-content { flex-direction: column }
 .mobile .interface-content > section { 
-  height: 50%; 
+  height: 40%; 
   padding: 0 10px 4px 10px; 
 }
 .mobile .interface-content > section:last-of-type {
   margin-bottom: 4px;
+  height: 60%;
 }
 .mobile .tile-container { transition: transform .4s; padding: 4px 4px; }
 
@@ -171,9 +173,7 @@
 
 .scrubber {
   width: 70%;
-  /*background: rgba(255,255,255,.05);*/
   display: flex;
-  /*height: 2em;*/
   position: absolute;
   padding: 0 2em;
 }
@@ -219,12 +219,15 @@
 }
 
 
-
+.mobile .interface { 
+  user-select: none;
+  top: 0 
+}
 .mobile .interface-header {
   font-size: 1.1em;
-  height: 40px;
   justify-content: center;
   margin-bottom: -4px;
+  z-index: 10;
 }
 .mobile .interface-header .date {
   /*font-weight: 700;*/
@@ -233,3 +236,107 @@
   opacity: .8;
   margin-left: 3px;
 }
+
+.mobile-menu {
+  position: absolute;
+  top: -100vh;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 70px;
+}
+.mobile-menu .hideBanner {
+  width: 100vw;
+  height: 70px;
+  position: absolute;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255,255,255,.02);
+  user-select: none;
+}
+.mobile-menu .hideBanner svg {
+  height: 30px;
+  width: 50px;
+  fill: rgba(255,255,255,0.3);
+  transform: scaleY(-1)
+}
+.mobile-menu .date-pickers {
+  width: 100%;
+  padding: 0 10%;
+  display: flex;
+  justify-content: space-between;
+}
+.mobile-menu .date-pickers .from,
+.mobile-menu .date-pickers .to {
+  position: relative;
+  width: 8em;
+  height: 10em;
+  padding-bottom: 0.5em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255,255,255,0.05);
+  border-radius: 2em;
+}
+.mobile-menu .text {
+  text-align: center;
+}
+.mobile-menu .text .big {
+  font-size: 5em;
+  line-height: 1em;
+}
+.mobile-menu .text .small {
+  text-transform: uppercase;
+  opacity: .7;
+}
+.mobile-menu input[type="date"] {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+}
+.mobile-menu .date-opts {
+  width: 100%;
+  padding: 0 10%;
+  display: flex;
+  justify-content: space-around;
+  user-select: none;
+  margin-top: 10vh;
+}
+.mobile-menu .date-opts .opt {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.4em;
+  font-weight: 700;
+  border-radius: 50%;
+  color: white;
+  opacity: .2;
+  position: relative;
+  transition: opacity .15s;
+}
+.mobile-menu .date-opts .opt:before {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 3px;
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  background: white;
+  opacity: 0;
+  transition: opacity .15s;
+}
+.mobile-menu .date-opts .opt.active { opacity: 1 }
+.mobile-menu .date-opts .opt.active:before { opacity: .6 }
+
+.mobile .interface, .mobile-menu { transition: top .3s }
+.mobile.app { transition: background .3s }

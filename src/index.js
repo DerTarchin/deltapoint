@@ -68,10 +68,10 @@ class App extends Component {
   componentDidMount = () => {
     // retrieve encrypted data
     REQUEST(DATA_URL, (error, response, body) => {
-      if(error) console.log('error:', error);
+      if(error || !body) alert.log('Error: ' + error);
       this.meta.encryptedMsg = JSON.parse(body).encryptedMsg;
       // dev
-      setTimeout(() => this.unlock('ord-mantell'), 500);
+      
     });
     if(this.state.encrypted) {
       // activate anime.js for unlock dialog
@@ -115,7 +115,7 @@ class App extends Component {
     DATE_OPTS[2].start = lastUpdated.clone().subtract(6,'months');
     DATE_OPTS[3].start = lastUpdated.clone().subtract(1,'years');
     DATE_OPTS.forEach(d => {
-      if(d.start.isBefore(startDate)) d.start = startDate;
+      // if(d.start.isBefore(startDate)) d.start = startDate;
       d.end = lastUpdated;
     });
 
@@ -170,8 +170,8 @@ class App extends Component {
   }
 
   render = () => {
-    const isMobile = true; 
-    // const isMobile = window.screen.width <= 767;
+    // const isMobile = true; 
+    const isMobile = window.screen.width <= 767;
     const interfaceProps = this.state.encrypted ? {} : {
       data: this.state.activeData,
       lastUpdated: this.state.lastUpdated,
@@ -182,7 +182,11 @@ class App extends Component {
     }
 
     return (
-      <div className={`app ${isMobile ? 'mobile' : ''}`}>
+      <div 
+        className={`app ${isMobile ? 'mobile' : ''}`} 
+        id="app"
+        style={{background: 'rgba(0,0,0,.15)'}}
+      >
         {
           !this.state.showUnlock ? null : 
           <div ref="unlock" className="unlock">
