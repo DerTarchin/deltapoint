@@ -10,7 +10,7 @@
 
 .interface > .bg {
   display: none;
-  user-select: none;
+  pointer-events: none;
   z-index: -10;
   width: 100%;
   height: 100%;
@@ -41,15 +41,37 @@
 
 .tile-col.left .tile-container { padding-left: 16px }
 .tile-col.right .tile-container { padding-right: 16px }
-.tile-col :last-child { padding-bottom: 16px }
+.tile-col > :last-child { padding-bottom: 16px }
 
 .tile-container .tile {
   height: 100%;
   width: 100%;
-  padding: 20px;
+  padding: 3vh;
   background: rgba(0,0,30,.3);
   box-shadow: 0px 0px 18px 0px rgba(0,0,0,0.1);
   border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.tile .header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  flex-grow: 0;
+  flex-shrink: 0;
+  padding-bottom: inherit;
+  line-height: 1em;
+}
+.tile .header .title {
+  color: hsla(220, 39%, 65%, .8);
+  font-size: 1.2em;
+  font-weight: 100;
+}
+.tile .body {
+  flex-grow: 1;
+  flex-shrink: 0;
+  min-height: 0;
 }
 
 @media only screen and (max-width: 767px) {
@@ -61,6 +83,9 @@
   .app:not(.mobile) .tile-container { 
     height: 300px!important;
     padding: 8px 16px; 
+  }
+  .app:not(.mobile) .tile {
+    padding: 20px;
   }
 }
 
@@ -94,10 +119,12 @@
   text-transform: uppercase;
   padding: 0 36px; /* 16 + 20 */
   margin-bottom: -8px;
+  user-select: none;
 }
 .interface-header .header-slider {
   height: 100%;
   width: 100%;
+  transform: translateY(0);
   transition: transform .2s;
 }
 .interface-header section {
@@ -115,7 +142,7 @@
   flex-shrink: 0;
   margin-left: 1em;
   fill: white;
-  width: 1.2em;
+  width: 1rem;
   opacity: .5;
   transform: rotate(90deg);
   transition: opacity .1s;
@@ -123,41 +150,73 @@
 .menu-icon:hover { opacity: 1 }
 
 .interface-header .logo { height: 15px } /* replaced logo with date */
-.interface-header .header-right { display: flex }
+.interface-header .header-right, .interface-header .header-left { display: flex }
+.interface-header .header-left li { letter-spacing: 1px }
 .interface-header .clickitem { transition: transform .1s }
 .interface-header :not(.active) > .clickitem,
 .interface-header .clickitem:not(.active) { cursor: pointer; }
-.interface-header :not(.active):hover > .clickitem { transform: scale(1.1) }
-.interface-header :not(.active):active > .clickitem { transform: scale(.8) }
+.interface-header :not(.active):hover > .clickitem,
+.interface-header .single:hover > .clickitem { transform: scale(1.1) }
+.interface-header :not(.active):active > .clickitem, 
+.interface-header .single:active > .clickitem { transform: scale(.8) }
 .interface-header .disabled { pointer-events: none; opacity: .2!important; }
+.interface-header .dates {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  padding-left: calc(1rem + 1em);
+  text-align: center;
+  z-index: -10;
+  font-size: 1.2em;
+}
 
-.date-opts {
+.interface-header ul {
   margin: 0;
   padding: 0;
   display: flex;
   align-items: center;
   list-style: none;
-  margin-right: -1em;
   position: relative;
 }
-.date-opts li {
+ul.date-opts { margin-right: -12px }
+ul.app-opts { margin-left: -12px }
+.interface-header ul li {
   margin: 0 2px;
-  padding: .5em 1em;
+  padding: 6px 12px; /* .5em 1em */
   opacity: .5;
   font-weight: 500;
 }
-.date-opts li:not(.active):hover,
-.date-opts li:not(.active):hover span { 
+.interface-header ul li.icon {
+  font-size: 1.2em;
+}
+.interface-header ul li.single {
+  transition: background .1s;
+  border-radius: .5em;
+}
+.interface-header ul li:not(.active):hover,
+.interface-header ul li:not(.active):hover span { 
   opacity: 1;
 }
-.date-opts li.active,
-.date-opts li.active span,
-.interface-header .active > .clickitem { opacity: 1 }
-.date-opts span {
+.interface-header ul li.active,
+.interface-header ul li.active span,
+.interface-header .active > .clickitem { 
+  opacity: 1 
+}
+.interface-header ul li.single.active {
+  background: rgba(255,255,255,.15);
+}
+.interface-header ul .divider {
+  pointer-events: none;
+  padding-right: 0;
+}
+.interface-header ul span {
   opacity: .8;
   margin-left: 2px;
 }
-.date-opts .bg {
+.app-opts span {
+  margin: 0 2px 0 0;
+}
+.interface-header ul .bg {
   position: absolute;
   top: 0;
   left: 0;
@@ -165,6 +224,9 @@
   opacity: 0;
   border-radius: .5em;
   transition: all .1s;
+}
+.interface-header .app-opts .bg {
+  background: rgba(255,255,255,.15)
 }
 #header-cal {
   justify-content: center;
@@ -188,6 +250,7 @@
   fill: white;
 }
 .scrubber .arrow { 
+  margin-top: 1px;
   position: absolute; 
   opacity: .5;
   height: 100%;
@@ -213,6 +276,7 @@
   width: 100%;
   text-align: center;
   position: absolute;
+  font-size: 1em;
 }
 #header-cal:hover .dates {
   opacity: 1;
@@ -229,10 +293,11 @@
   margin-bottom: -4px;
   z-index: 10;
 }
-.mobile .interface-header .date {
-  /*font-weight: 700;*/
+.mobile .interface-header .dates {
+  position: relative;
+  padding: 0;
 }
-.mobile .interface-header .date span {
+.mobile .interface-header .dates span {
   opacity: .8;
   margin-left: 3px;
 }
@@ -248,6 +313,7 @@
   justify-content: center;
   align-items: center;
   padding-bottom: 70px;
+  filter: blur(10px);
 }
 .mobile-menu .hideBanner {
   width: 100vw;
@@ -283,35 +349,38 @@
   align-items: center;
   background: rgba(255,255,255,0.05);
   border-radius: 2em;
+  overflow: hidden;
 }
 .mobile-menu .text {
   text-align: center;
 }
 .mobile-menu .text .big {
-  font-size: 5em;
+  font-size: 4em;
+  /*font-weight: 100;*/
   line-height: 1em;
 }
 .mobile-menu .text .small {
   text-transform: uppercase;
   opacity: .7;
+  font-weight: 500;
 }
 .mobile-menu input[type="date"] {
   height: 100%;
-  width: 100%;
+  width: 50vw;
   position: absolute;
   top: 0;
   left: 0;
   opacity: 0;
 }
-.mobile-menu .date-opts {
+.mobile-menu .opts {
   width: 100%;
   padding: 0 10%;
   display: flex;
   justify-content: space-around;
   user-select: none;
-  margin-top: 10vh;
+  margin: 10vh;
 }
-.mobile-menu .date-opts .opt {
+.mobile-menu .opts .opt {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -321,9 +390,10 @@
   color: white;
   opacity: .2;
   position: relative;
+  text-transform: uppercase;
   transition: opacity .15s;
 }
-.mobile-menu .date-opts .opt:before {
+.mobile-menu .opts .opt:not(.single):before {
   content: '';
   display: block;
   width: 100%;
@@ -335,8 +405,8 @@
   opacity: 0;
   transition: opacity .15s;
 }
-.mobile-menu .date-opts .opt.active { opacity: 1 }
-.mobile-menu .date-opts .opt.active:before { opacity: .6 }
+.mobile-menu .opts .opt.active { opacity: 1 }
+.mobile-menu .opts .opt.active:before { opacity: .6 }
 
-.mobile .interface, .mobile-menu { transition: top .3s }
+.mobile .interface, .mobile-menu { transition: top .3s, filter .3s }
 .mobile.app { transition: background .3s }

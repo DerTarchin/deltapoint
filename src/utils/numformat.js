@@ -23,11 +23,14 @@ const getNumberProperties = num => {
   if(suffix && !ranges.map(r => r.suffix).includes(suffix)) return false; 
   // return values - it's a number!
   const multiplier = suffix ? ranges.find(r => r.suffix === suffix).divider : 1;
+  // create comma val
+  const comma = ((+_num * multiplier) + '').split('.');
+  comma[0] = comma[0].replace(/\B(?=(\d{3})+(?!\d))/g, ','); 
   return { 
     string: num, 
     number: +_num, 
     value: +_num * multiplier,
-    comma:  ((+_num * multiplier) + '').replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+    comma: comma.join('.'),
     suffix,
     multiplier,
   }

@@ -110,6 +110,7 @@ export default class InterfaceMobile extends Component {
     processSlides(this.meta.swipe.posIndex, [...this.refs.positions.querySelectorAll('.swipe-wrap > div')]);
 
     // animate in
+    if(this.meta.tileAnime) this.meta.tileAnime.pause();
     this.meta.tileAnime = anime.timeline().add({
       targets: [
         '#balances',
@@ -154,10 +155,15 @@ export default class InterfaceMobile extends Component {
         round: 1,
         duration: 1000,
         update: () => {
-          fromElDay.innerHTML = fromStartDate.clone().add(diffs.fromdiff, 'days').date();
-          fromElRest.innerHTML = fromStartDate.clone().add(diffs.fromdiff, 'days').format('MMM YYYY');
-          toElDay.innerHTML = toStartDate.clone().add(diffs.todiff, 'days').date();
-          toElRest.innerHTML = toStartDate.clone().add(diffs.todiff, 'days').format('MMM YYYY');
+          if(diffs.fromdiffhistory === diffs.fromdiff && diffs.todiffhistory === diffs.todiff) return;
+          const currFromDate = fromStartDate.clone().add(diffs.fromdiff, 'days'),
+                currToDate = toStartDate.clone().add(diffs.todiff, 'days');
+          fromElDay.innerHTML = currFromDate.date();
+          fromElRest.innerHTML = currFromDate.format('MMM YYYY');
+          toElDay.innerHTML = currToDate.date();
+          toElRest.innerHTML = currToDate.format('MMM YYYY');
+          diffs.fromdiffhistory = diffs.fromdiff;
+          diffs.todiffhistory = diffs.todiff;
         }
       })
     }
@@ -198,12 +204,16 @@ export default class InterfaceMobile extends Component {
       this.refs.menu.style.top = `-${drag.diff}px`;
       this.refs.interface.style.top = `calc(100vh - ${drag.diff}px)`;
       const appbg = p5map(drag.diff, 0, window.screen.height, MENU_BG, drag.alpha);
+      const blur = Math.max(p5map(drag.diff, window.screen.height / 4, window.screen.height / 2, 0, 10), 0);
       this.meta.app.style.background = `rgba(0,0,0,${appbg})`;
+      this.refs.menu.style.filter = `blur(${blur}px)`;
     } else { // exact position on screen
       this.refs.interface.style.top = y + 'px';
       this.refs.menu.style.top = `calc(-100vh + ${y}px)`;
       const appbg = p5map(y, 0, window.screen.height, drag.alpha, MENU_BG);
+      const blur = Math.max(p5map(y, 0, window.screen.height / 2, 10, 0), 0);
       this.meta.app.style.background = `rgba(0,0,0,${appbg})`;
+      this.refs.menu.style.filter = `blur(${blur}px)`;
     }
   }
 
@@ -216,12 +226,13 @@ export default class InterfaceMobile extends Component {
       ) {
         this.hideMenu(fast);
       } else {
-        this.refs.menu.style.transitionDuration = '0.1s'; // faster speed for short distance
-        this.refs.interface.style.transitionDuration = '0.1s';
-        this.meta.app.style.transitionDuration = '0.1s';
+        this.refs.menu.style.transitionDuration = '0.15s'; // faster speed for short distance
+        this.refs.interface.style.transitionDuration = '0.15s';
+        this.meta.app.style.transitionDuration = '0.15s';
         this.refs.menu.style.top = 0;
         this.refs.interface.style.top = '100vh';
         this.meta.app.style.background = `rgba(0,0,0,${MENU_BG})`;
+        this.refs.menu.style.filter = 'blur(0px)';
       }
     } else { // show menu
       if( (fast && parseFloat(this.refs.interface.style.top) >= window.screen.height / 5) ||
@@ -229,12 +240,13 @@ export default class InterfaceMobile extends Component {
       ) {
         this.showMenu(fast);
       } else {
-        this.refs.menu.style.transitionDuration = '0.1s'; // faster speed for short distance
-        this.refs.interface.style.transitionDuration = '0.1s';
-        this.meta.app.style.transitionDuration = '0.1s';
+        this.refs.menu.style.transitionDuration = '0.15s'; // faster speed for short distance
+        this.refs.interface.style.transitionDuration = '0.15s';
+        this.meta.app.style.transitionDuration = '0.15s';
         this.refs.menu.style.top = null;
         this.refs.interface.style.top = null;
         this.meta.app.style.background = `rgba(0,0,0,${this.meta.drag.alpha})`;
+        this.refs.menu.style.filter = 'blur(10px)';
       }
     }
     this.meta.drag = null;
@@ -251,6 +263,7 @@ export default class InterfaceMobile extends Component {
     this.refs.menu.classList.add('show');
     this.refs.menu.style.top = 0;
     this.refs.interface.style.top = '100vh';
+    this.refs.menu.style.filter = 'blur(0px)';
     this.meta.app.style.background = `rgba(0,0,0,${MENU_BG})`;
   }
 
@@ -266,6 +279,7 @@ export default class InterfaceMobile extends Component {
     this.refs.menu.style.top = null;
     this.refs.interface.style.top = null;
     this.meta.app.style.background = this.meta.app.getAttribute('data-bg');
+    this.refs.menu.style.filter = 'blur(10px)';
   }
 
   dateChange = e => {
@@ -275,7 +289,7 @@ export default class InterfaceMobile extends Component {
         changed = e.target === this.refs.from ? 0 : 1;
     // limit dates
     const min = moment(this.props.data.meta.start_date, 'L'),
-          max = moment(this.props.lastUpdated, 'L');
+          max = moment(this.props.lastDay, 'L');
     if(dateFrom.isBefore(min)) dateFrom = min;
     if(dateTo.isAfter(max)) dateTo = max;
     let range = [dateFrom, dateTo];
@@ -314,7 +328,7 @@ export default class InterfaceMobile extends Component {
         <div className="bg" />
 
         <div className="interface-header" ref="header" onClick={this.showMenu}>
-          <div className="date">{datesRender}</div>
+          <div className="dates">{datesRender}</div>
         </div>
 
         <div className="interface-content" ref="content">
@@ -352,6 +366,25 @@ export default class InterfaceMobile extends Component {
         onMouseMove={this.moveHeader}
         onMouseUp={this.moveHeaderEnd}
       >
+        <div className="opts">
+          <div 
+            className={`opt icon ${this.props.dataView === '$' ? 'active' : ''}`}
+            onClick={this.props.dataView === '$' ? null : () => this.props.onSettingsChange('dataView', '$')}
+          >$</div>
+          <div 
+            className={`opt icon ${this.props.dataView === '%' ? 'active' : ''}`}
+            onClick={this.props.dataView === '%' ? null : () => this.props.onSettingsChange('dataView', '%')}
+          >%</div>
+          <div className="opt divider" />
+          <div 
+            className={`opt single ${this.props.feeAdjustments ? 'active' : ''}`}
+            onClick={() => this.props.onSettingsChange('feeAdjustments', !this.props.feeAdjustments)}
+          >Fees</div>
+          <div 
+            className={`opt single ${this.props.contributionAdjustments ? 'active' : ''}`}
+            onClick={() => this.props.onSettingsChange('contributionAdjustments', !this.props.contributionAdjustments)}
+          >Adj</div>
+        </div>
         <div className="date-pickers">
           <div className="from">
             <div className="text">
@@ -380,7 +413,7 @@ export default class InterfaceMobile extends Component {
             />
           </div>
         </div>
-        <div className="date-opts">
+        <div className="opts">
           {
             this.props.dateOpts.map((opt, i) => {
               const active = this.props.activeDateOpt === i;

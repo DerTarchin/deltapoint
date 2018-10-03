@@ -12,6 +12,23 @@ import {
 
 require('./app.css');
 
+const DEMO = false;
+const MOBILE_DEV = false;
+const demoVals = data => {
+  const day = moment(data.meta.last_updated, 'L'),
+        start = moment(data.meta.start_date, 'L');
+  while(day.isSameOrAfter(start)) {
+    const d = data[day.format('L')]
+    if(d && DEMO) {
+      d.total_contributions *= 13;
+      d.balance *= 33;
+      d.cash_balance *= 33;
+      d.total_fees *= 33;
+    }
+    day.subtract(1, 'days');
+  }
+}
+
 const REQUEST = require('request');
 const DATA_URL = 'http://hizalcelik.com/dev/deltapoint.appdata.encrypted.json';
 const IS_ENTER = e => (e.key || e.keyCode) === 'Enter' || e.which === 13;
@@ -55,8 +72,12 @@ class App extends Component {
     showUnlock: true,
 
     // app settings
+    lastDay: NOW,
     activeDateOpt: 0,
     activeDates: [DATE_OPTS[0].start, DATE_OPTS[0].end],
+    feeAdjustments: false,
+    contributionAdjustments: true,
+    dataView: '$',
   };
   meta = {}
 
@@ -68,10 +89,10 @@ class App extends Component {
   componentDidMount = () => {
     // retrieve encrypted data
     REQUEST(DATA_URL, (error, response, body) => {
-      if(error || !body) alert.log('Error: ' + error);
+      if(error || !body) alert('Error: ' + error);
       this.meta.encryptedMsg = JSON.parse(body).encryptedMsg;
       // dev
-      
+      setTimeout(() => this.unlock('ord-mantell'), 500);
     });
     if(this.state.encrypted) {
       // activate anime.js for unlock dialog
@@ -105,25 +126,32 @@ class App extends Component {
           activeAccount = accounts[0];
     this.meta.decryptedMsg = data;
     this.meta.acctData = data[activeAccount];
+    const { acctData } = this.meta;
     
     // reset date ranges
-    const lastUpdated = moment(this.meta.acctData.meta.last_updated, 'L');
-    while(!lastUpdated.day() || lastUpdated.day() === 6) lastUpdated.subtract(1, 'days');
-    const startDate = moment(this.meta.acctData.meta.start_date, 'L');
-    DATE_OPTS[0].start = lastUpdated.clone().subtract(1,'months');
-    DATE_OPTS[1].start = lastUpdated.clone().subtract(3,'months');
-    DATE_OPTS[2].start = lastUpdated.clone().subtract(6,'months');
-    DATE_OPTS[3].start = lastUpdated.clone().subtract(1,'years');
+    const lastDay = moment(acctData.meta.last_updated, 'L');
+    while((!lastDay.day() || lastDay.day() === 6) || !acctData[lastDay.format('L')]) {
+      lastDay.subtract(1, 'days');
+    }
+    const startDate = moment(acctData.meta.start_date, 'L');
+    DATE_OPTS[0].start = lastDay.clone().subtract(1,'months');
+    DATE_OPTS[1].start = lastDay.clone().subtract(3,'months');
+    DATE_OPTS[2].start = lastDay.clone().subtract(6,'months');
+    DATE_OPTS[3].start = lastDay.clone().subtract(1,'years');
     DATE_OPTS.forEach(d => {
-      // if(d.start.isBefore(startDate)) d.start = startDate;
-      d.end = lastUpdated;
+      if(d.start.isBefore(startDate)) d.start = startDate;
+      d.end = lastDay;
     });
 
+    // apply adjustments
+    if(DEMO) demoVals(acctData);
+    this.adjData();
+
     this.setState({ 
-      activeData: this.updateData(), 
+      activeData: this.trimData(), 
       accounts, 
       activeAccount, 
-      lastUpdated,
+      lastDay,
       activeDates: [DATE_OPTS[0].start, DATE_OPTS[0].end],
       encrypted: false,
     }, () => {
@@ -143,7 +171,8 @@ class App extends Component {
     setTimeout(() => this.setState({ unlockError: '' }), 150);
   }
 
-  updateData = dates => {
+  // trims active data to relevant dates, and meta
+  trimData = dates => {
     dates = dates || this.state.activeDates;
     const { acctData } = this.meta;
     const data = { meta: acctData.meta };
@@ -154,36 +183,86 @@ class App extends Component {
     return data;
   }
 
+  adjData = adj => {
+    const { acctData: data } = this.meta;
+    const {
+      feeAdjustments: fee,
+      // dataView: view,
+      contributionAdjustments: contrib
+    } = adj || this.state;
+    const day = moment(data.meta.last_updated, 'L'),
+          start = moment(data.meta.start_date, 'L');
+    let tcontrib;
+    while(day.isSameOrAfter(start)) {
+      const d = data[day.format('L')]
+      if(d) {
+        if(!tcontrib) tcontrib = d.total_contributions;
+        adj = {
+          balance: d.balance,
+          cash_balance: d.cash_balance,
+          total_contributions: d.total_contributions
+        };
+        if(fee) {
+          adj.balance += d.total_fees;
+          adj.cash_balance += d.total_fees;
+        }
+        if(contrib) {
+          adj.balance += (tcontrib - d.total_contributions);
+          adj.cash_balance += (tcontrib - d.total_contributions);
+          adj.total_contributions = tcontrib;
+        }
+        adj.pl = adj.balance - adj.total_contributions;
+        adj.plPerc = (adj.balance - adj.total_contributions) / adj.total_contributions * 100;
+        // if(view === '$') {
+        // }
+        // if(view === '%') {
+        // }
+        d.adj = adj;
+      }
+      day.subtract(1, 'days');
+    }
+  }
+
   onDateChange = (type, val) => {
-    debounce(() => {
+    // debounce(() => {
       const isOpt = type === 'opt',
             activeDateOpt = isOpt ? val : -1,
             activeDates = isOpt ? [DATE_OPTS[val].start, DATE_OPTS[val].end] : val;
-      const activeData = this.updateData(activeDates);
+      const activeData = this.trimData(activeDates);
 
       this.setState({ 
         activeDateOpt,
         activeDates,
         activeData
       });
-    }, 0);
+    // }, 20);
+  }
+
+  onSettingsChange = (key, val) => {
+    this.adjData({...this.state, [key]: val})
+    this.setState({ [key]: val });
   }
 
   render = () => {
-    // const isMobile = true; 
-    const isMobile = window.screen.width <= 767;
+    const isMobile = MOBILE_DEV || window.screen.width <= 767;
     const interfaceProps = this.state.encrypted ? {} : {
       data: this.state.activeData,
-      lastUpdated: this.state.lastUpdated,
+      
+      lastDay: this.state.lastDay,
       dateOpts: DATE_OPTS,
       activeDateOpt: this.state.activeDateOpt,
       activeDates: this.state.activeDates,
       onDateChange: this.onDateChange,
+
+      dataView: this.state.dataView,
+      feeAdjustments: this.state.feeAdjustments,
+      contributionAdjustments: this.state.contributionAdjustments,
+      onSettingsChange: this.onSettingsChange,
     }
 
     return (
       <div 
-        className={`app ${isMobile ? 'mobile' : ''}`} 
+        className={`app ${isMobile ? 'mobile' : ''} ${MOBILE_DEV ? 'dev' : ''}`} 
         id="app"
         style={{background: 'rgba(0,0,0,.15)'}}
       >

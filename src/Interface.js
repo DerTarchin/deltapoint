@@ -27,19 +27,16 @@ const SCRUBBER_RANGE = 90;
 const WEEKDAY = date => date.day() && date.day() < 6;
 
 export default class Interface extends Component {
-  constructor(props) {
-    super(props);
-    const ad = props.activeDates;
-    this.state = {
-      headerIndex: 0,
-      scrubberEnd: this.props.lastUpdated,
-      highlightDate: ad[0] === ad[1] ? frmt(ad[0]) : `${frmt(ad[0], ad[1])[0]} - ${frmt(ad[0], ad[1])[1]}`
-    };
-    this.meta = {};
+  state = {
+    headerIndex: 0,
+    scrubberEnd: this.props.lastDay,
+    highlightDate: null,
   }
+  meta = {}
 
   componentWillMount = () => {
     window.addEventListener('resize', this.handleResize);
+    window.addEventListener('keydown', this.handleKey);
   }
 
   componentDidMount = () => {
@@ -72,12 +69,49 @@ export default class Interface extends Component {
       duration: TILE_INTRO_DURATION,
       offset: TILE_INTRO_DELAY * 2
     });
+    this.meta.mounted = true;
+  }
+
+  componentWillReceiveProps = props => {
+    // animation of dates in the header when adjusting dates
+    if(!this.state.headerIndex && this.props.activeDates !== props.activeDates) { // first header visible
+      const dates = this.refs.dates || document.querySelector('#header-basic .dates');
+      const years = [...dates.getElementsByClassName('year')],
+            rest = [...dates.getElementsByClassName('rest')];
+      const fromStartDate = moment(`${rest[0].textContent} ${years[0] ? years[0].textContent : this.props.lastDay.year()}`, 'MMM DD YYYY'),
+            toStartDate = rest[1] ? moment(`${rest[1].textContent} ${years[1] ? years[1].textContent : this.props.lastDay.year()}`, 'MMM DD YYYY') : fromStartDate.clone();
+      const fromDiff = props.activeDates[0].diff(fromStartDate, 'days'),
+            toDiff = props.activeDates[1].diff(toStartDate, 'days');
+      const diffs = { fromdiff: 0, todiff: 0, fromdiffhistory: 0, todiffhistory: 0 };
+      if(this.meta.dateMenuAnim) this.meta.dateMenuAnim.pause();
+      this.meta.dateMenuAnim = anime({
+        targets: diffs, 
+        fromdiff: fromDiff,
+        todiff: toDiff,
+        easing: 'easeOutExpo',
+        round: 1,
+        duration: 700,
+        update: () => {
+          if(diffs.fromdiffhistory === diffs.fromdiff && diffs.todiffhistory === diffs.todiff) return;
+          const currFromDate = fromStartDate.clone().add(diffs.fromdiff, 'days'),
+                currToDate = toStartDate.clone().add(diffs.todiff, 'days');
+          if(years.length) {
+            years[0].innerHTML = currFromDate.year();  
+            if(years[1]) years[1].innerHTML = currToDate.year();
+          }
+          rest[0].innerHTML = currFromDate.format('MMM D');
+          if(rest[1]) rest[1].innerHTML = currToDate.format('MMM D');
+          diffs.fromdiffhistory = diffs.fromdiff;
+          diffs.todiffhistory = diffs.todiff;
+        }
+      })
+    }
   }
 
   componentDidUpdate = () => {
-    // move date opt background
-    const { activeDateOpt } = this.props;
-    const bg = this.refs.dateOptBg;
+    // move selected opt backgrounds
+    const { activeDateOpt, dataView } = this.props;
+    let bg = this.refs.dateOptBg;
     if(activeDateOpt < 0) bg.style.opacity = 0;
     else if(!this.meta.loaded || parseFloat(bg.getAttribute('data-index')) !== activeDateOpt) {
       const opt = this.refs.dateOpts.querySelectorAll('[data-opt]')[activeDateOpt].getBoundingClientRect();
@@ -85,13 +119,22 @@ export default class Interface extends Component {
       bg.style.opacity = 1;
       bg.style.width = opt.width+'px';
       bg.style.height = opt.height+'px';
-      bg.style.left = (opt.left - offset) +'px';
+      bg.style.left = (opt.left - offset)+'px';
     }
+    bg = this.refs.appOptBg;
+    const { dvDollar, dvPerc } = this.refs;
+    const offset = this.refs.appOpts.getBoundingClientRect().left;
+    const rect = (dataView === '$' ? dvDollar : dvPerc).getBoundingClientRect();
+    bg.style.opacity = 1;
+    bg.style.width = rect.width+'px';
+    bg.style.height = rect.height+'px';
+    bg.style.left = (rect.left - offset)+'px';
     this.meta.loaded = true;
   }
 
   componentWillUnmount = () => {
     window.removeEventListener('resize', this.handleResize);
+    window.removeEventListener('keydown', this.handleKey);
   }
 
   handleResize = e => {
@@ -101,13 +144,53 @@ export default class Interface extends Component {
     }, 50)
   }
 
+  handleKey = e => {
+    const { onSettingsChange, onDateChange } = this.props;
+    switch(e.code) {
+      case 'Space': return this.changeHeader();
+      case 'KeyD': 
+        if(this.state.headerIndex) this.changeHeader();
+        onSettingsChange('dataView', '$');
+        return;
+      case 'KeyP': 
+        if(this.state.headerIndex) this.changeHeader();
+        onSettingsChange('dataView', '%');
+        return;
+      case 'KeyF': 
+        if(this.state.headerIndex) this.changeHeader();
+        onSettingsChange('feeAdjustments', !this.props.feeAdjustments);
+        return;
+      case 'KeyA': 
+        if(this.state.headerIndex) this.changeHeader();
+        onSettingsChange('contributionAdjustments', !this.props.contributionAdjustments);
+        return;
+      case 'Digit1': 
+        if(this.state.headerIndex) this.changeHeader();
+        onDateChange('opt', 0);
+        return;
+      case 'Digit3': 
+        if(this.state.headerIndex) this.changeHeader();
+        onDateChange('opt', 1);
+        return;
+      case 'Digit6': 
+        if(this.state.headerIndex) this.changeHeader();
+        onDateChange('opt', 2);
+        return;
+      case 'KeyY': 
+        if(this.state.headerIndex) this.changeHeader();
+        onDateChange('opt', 3);
+        return;
+      default: return;
+    }
+  }
+
   changeHeader = e => {
     const newState = {
       headerIndex: (this.state.headerIndex + 1) % 2
     }
     if(newState.headerIndex === 1) {
       this.meta.weekdays = null;
-      newState.scrubberEnd = this.meta.activeScrubberEnd || this.props.lastUpdated;
+      newState.scrubberEnd = this.meta.activeScrubberEnd || this.props.lastDay;
     }
     this.setState(newState, newState.headerIndex === 1 ? this.drawScrubber : null);
   }
@@ -240,7 +323,7 @@ export default class Interface extends Component {
     const mod = e.currentTarget === this.refs.scrubBackwards ? -1 : 1;
     let diff = 0;
     // shift by RANGE or (if upward) until last day
-    while(diff < SCRUBBER_RANGE-1 && end.isSameOrBefore(this.props.lastUpdated)) {
+    while(diff < SCRUBBER_RANGE-1 && end.isSameOrBefore(this.props.lastDay)) {
       if(WEEKDAY(end)) diff++;
       end.add(mod, 'days');
     }
@@ -256,7 +339,7 @@ export default class Interface extends Component {
         diff = 0;
         end = moment(this.props.data.meta.start_date, 'L');
         // shift by RANGE or (if upward) until last day
-        while(diff < SCRUBBER_RANGE-1 && end.isSameOrBefore(this.props.lastUpdated)) {
+        while(diff < SCRUBBER_RANGE-1 && end.isSameOrBefore(this.props.lastDay)) {
           if(WEEKDAY(end)) diff++;
           end.add(1, 'days');
         }
@@ -273,11 +356,36 @@ export default class Interface extends Component {
     const {
       weekdays // hover
     } = this.meta;
+    const {
+      activeDates,
+      dataView,
+      feeAdjustments,
+      contributionAdjustments,
+      onSettingsChange,
+      onDateChange
+    } = this.props;
 
-    const dateFrom = this.props.activeDates[0],
-          dateTo = this.props.activeDates[1],
-          formatted = frmt(dateFrom, dateTo),
-          datesRender = highlightDate || (dateFrom === dateTo ? formatted[0] : `${formatted[0]} - ${formatted[1]}`);
+    const renderDates = useRef => {
+      const fmt = sepFrmt(activeDates[0], activeDates[1]);
+      const props = {};
+      if(useRef) props.ref = 'dates';
+      else if(highlightDate) return <div className="dates">{highlightDate}</div>;
+      if(activeDates[0] === activeDates[1]) return (
+        <div className="dates" {...props} key={highlightDate}>
+          <span className="rest">{fmt[0].m} {fmt[0].d}</span> 
+          {fmt[0].useYear ? <span className="year">, {fmt[0].y}</span> : null}
+        </div>
+      );
+      return (
+        <div className="dates" {...props} key={highlightDate}>
+          <span className="rest">{fmt[0].m} {fmt[0].d}</span> 
+          {fmt[0].useYear ? <span className="year">, {fmt[0].y}</span> : null}
+          {` - `}
+          <span className="rest">{fmt[1].m} {fmt[1].d}</span> 
+          {fmt[1].useYear ? <span className="year">, {fmt[1].y}</span> : null}
+        </div>
+      )
+    }
 
     return (
       <div className="interface">
@@ -286,7 +394,35 @@ export default class Interface extends Component {
         <div ref="header" className="interface-header">
           <div className="header-slider" data-slide={headerIndex}>
             <section id="header-basic">
-              <div className="dates">{datesRender}</div>
+              <div className="header-left">
+                <ul ref="appOpts" className="app-opts">
+                  <div ref="appOptBg" className="bg" data-index={-1} />
+                  <li 
+                    className={`icon ${dataView === '$' ? 'active' : ''}`}
+                    ref="dvDollar"
+                    title="Use dollar change"
+                    onClick={dataView === '$' ? null : () => onSettingsChange('dataView', '$')}
+                  ><div className="clickitem">$</div></li>
+                  <li 
+                    className={`icon ${dataView === '%' ? 'active' : ''}`}
+                    ref="dvPerc"
+                    title="Use percent change"
+                    onClick={dataView === '%' ? null : () => onSettingsChange('dataView', '%')}
+                  ><div className="clickitem">%</div></li>
+                  <li className="divider" />
+                  <li 
+                    className={`single ${feeAdjustments ? 'active' : ''}`}
+                    title="Toggle fee-adjusted values"
+                    onClick={() => onSettingsChange('feeAdjustments', !feeAdjustments)}
+                  ><div className="clickitem">Fees</div></li>
+                  <li 
+                    className={`single ${contributionAdjustments ? 'active' : ''}`}
+                    title="Toggle backwards contribution adjustments"
+                    onClick={() => onSettingsChange('contributionAdjustments', !contributionAdjustments)}
+                  ><div className="clickitem">Adj</div></li>
+                </ul>
+              </div>
+              {renderDates(true)}
               <div className="header-right">
                 <ul ref="dateOpts" className="date-opts">
                   <div ref="dateOptBg" className="bg" data-index={-1} />
@@ -300,7 +436,7 @@ export default class Interface extends Component {
                         className={active ? 'active' : ''}
                         data-opt={i}
                         title={range}
-                        onClick={active ? null : () => this.props.onDateChange('opt', i)}
+                        onClick={active ? null : () => onDateChange('opt', i)}
                       ><div className="clickitem">{opt.range_count}<span>{opt.range_type}</span></div></li>
                     })
                   }
@@ -309,13 +445,13 @@ export default class Interface extends Component {
             </section>
             <section id="header-cal" onMouseMove={this.scrub}>
               <div className="scrubber" ref="scrubber">
-                <div className="dates">{datesRender}</div>
+                {renderDates()}
                 <canvas ref="canvas" onClick={this.scrubSelect} />
                 <div className={`arrow backwards ${weekdays && weekdays[0] === this.props.data.meta.start_date ? 'disabled' : ''}`} ref="scrubBackwards" onClick={this.scrubAdjust}>
                   <span className="clickitem">{doublearrow}</span>
                 </div>
                 <div 
-                  className={`arrow forwards ${weekdays && weekdays[weekdays.length-1] === this.props.lastUpdated.format('L') ? 'disabled' : ''}`} 
+                  className={`arrow forwards ${weekdays && weekdays[weekdays.length-1] === this.props.lastDay.format('L') ? 'disabled' : ''}`} 
                   ref="scrubForwards" 
                   onClick={this.scrubAdjust}
                 >

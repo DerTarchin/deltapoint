@@ -9,7 +9,8 @@ import {
 } from './numformat';
 import {
   getColorProperties,
-  getAlpha
+  getAlpha,
+  glow
 } from './colorformat';
 
 const pagePos = el => {
@@ -46,14 +47,14 @@ const sepFrmt = (start, end) => {
     y: start.year(),
     m: start.format('MMM'),
     M: start.format('MMMM'),
-    d: start.format('DD'),
+    d: start.format('D'),
     useYear: start.year() !== year
   };
   if(end && !start) return {
     y: end.year(),
     m: end.format('MMM'),
     M: end.format('MMMM'),
-    d: end.format('DD'),
+    d: end.format('D'),
     useYear: end.year() !== year
   };
   return [
@@ -61,19 +62,30 @@ const sepFrmt = (start, end) => {
       y: start.year(),
       m: start.format('MMM'),
       M: start.format('MMMM'),
-      d: start.date(),
+      d: start.format('D'),
       useYear: start.year() !== end.year() || end.year() !== year
     }, {
       y: end.year(),
       m: end.format('MMM'),
       M: end.format('MMMM'),
-      d: end.date(),
+      d: end.format('D'),
       useYear: start.year() !== end.year() || end.year() !== year
     }
   ]
 }
 
 const p5map = (val, inMin, inMax, outMin, outMax) => outMin + (outMax - outMin) * ((val - inMin) / (inMax - inMin))
+
+const colorMap = {
+  'mdy': '#71f48b', // hsl(132, 85%, 70%) = green,
+  'ziv': '#5af2f2', // hsl(180, 85%, 65%) = blue 
+  'svxy': '#559ef6', // hsl(213, 90%, 65%) = dark blue faded
+  'cash': '#b6a0f8', // hsl(255, 85%, 80%) = lilac,
+  'other': '#f688de', // hsl(313, 85%, 75%) = pink,
+  'bg': '#445db1', // hsl(226, 44%, 48%) = dark blue faded
+}
+
+const constrain = (val, min, max) => val < min ? min : val > max ? max : val
 
 export {
   decrypt,
@@ -87,6 +99,9 @@ export {
   getNumberProperties,
   round,
   getAlpha,
+  glow,
   getColorProperties,
   p5map,
+  constrain,
+  colorMap
 }

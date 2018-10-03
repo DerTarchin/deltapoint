@@ -1,0 +1,90 @@
+#balances .dsign {
+  margin-right: .2em;
+}
+#balances .psign {
+  margin: 0 .3em 0 .15em;
+}
+
+#balances .body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-weight: 100;
+}
+
+#balances .balance,
+#balances .val {
+  position: relative;
+  font-size: 5vh;
+  line-height: 1em;
+  display: flex;
+  align-items: flex-start;
+  margin-top: -.2em;
+}
+
+#balances small {
+  font-size: .5em;
+  line-height: 1.5em;
+  letter-spacing: 1px;
+  margin-left: 2px;
+}
+
+#balances .stats {
+  display: flex;
+  justify-content: space-between;
+}
+
+#balances .stat {
+  flex-grow: 1;
+  width: 100%;
+  margin-right: 3vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+#balances .stats > :last-child {
+  margin-right: 0;
+}
+
+#balances .stat .val {
+  font-size: 3.2vh;
+  margin-bottom: 2px;
+  align-items: flex-end;
+}
+#balances .stat .title {
+  font-size: 1.8vh;
+  color: hsla(220, 39%, 65%, .8);
+}
+#balances .stat .range {
+  margin: 7px 0;
+  height: 7px;
+  width: 100%;
+  background: hsla(220, 39%, 65%, .2);
+  border-radius: 90000px;
+}
+#balances .stat .range div {
+  border-radius: 90000px;
+  height: 100%;
+  width: 0%;
+  transition: width .2s;
+}
+#balances .stat .details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.2vh;
+  color: hsla(220, 39%, 65%, .8);
+  text-transform: uppercase;
+}
+#balances .stat:hover .details,
+#balances .stat:hover .title {
+  color: white;
+}
+
+@media only screen and (max-width: 767px) {
+  #balances .balance { font-size: 3em }
+  #balances .stat .title { font-size: .9em }
+  #balances .stat .details { font-size: .65em }
+}
+
+.mobile #balances .balance { font-size: 2em }

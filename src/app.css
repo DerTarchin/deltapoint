@@ -1,8 +1,21 @@
-@import url('https://fonts.googleapis.com/css?family=Montserrat:100,300,500,700,900');
+/*@import url('https://fonts.googleapis.com/css?family=Montserrat:100,300,500,700,900');*/
+@import url('https://fonts.googleapis.com/css?family=Rubik:300,400,500,700,900');
+
+/*
+== COLORS ==
+#18ecdd hsl(176, 85%, 51%) = green
+#4a8efc hsl(217, 97%, 64%) = blue   x
+#aec2fa hsl(224, 88%, 83%) = purple
+#ff85e4 hsl(313, 100%, 76%) = pink
+#445db1 hsl(226, 44%, 48%) = darkblue
+*/
 
 * {
   outline: none;
   box-sizing: border-box;
+}
+.mobile * {
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
 }
 
 html {
@@ -12,7 +25,8 @@ html {
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Montserrat', sans-serif;
+  /*font-family: 'Montserrat', sans-serif;*/
+  font-family: 'Rubik', sans-serif;
   color: white;
   width: 100%;
   height: 100vh;
@@ -58,8 +72,8 @@ body {
     transform: translateX(-100%) rotate(-90deg); 
     transform-origin: right top;
   }*/
-  .mobile.app > :not(.rotate) { display: none; }
-  .mobile.app > .rotate { display: flex; }
+  .mobile.app:not(.dev) > :not(.rotate) { display: none; }
+  .mobile.app:not(.dev) > .rotate { display: flex; }
 }
 
 .unlock {

@@ -1,0 +1,86 @@
+#breakdown .body {
+  display: flex;
+  align-items: center;
+  position: relative;
+  font-weight: 100;
+}
+
+#breakdown .square {
+  position: absolute;
+}
+
+#breakdown .square:not([data-sized]) svg {
+  opacity: 0;
+  stroke-dasharray: 0!important;
+}
+#breakdown svg {
+  position: absolute;
+  transform: rotate(-90deg) translate3d(0,0,0);
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  transition: opacity 2s, transform .2s;
+}
+#breakdown circle {
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 7px;
+  vector-effect: non-scaling-stroke;
+  stroke-dashoffset: 0;
+  stroke-dasharray: 0;
+  transition: all .2s;
+}
+#breakdown circle.track {
+  stroke: #445db1;
+  stroke-width: 1px;
+  stroke-dasharray: 5;
+}
+#breakdown circle.mark {
+  stroke: #445db1;
+  stroke-width: 3.5px;
+}
+
+#breakdown .space {
+  width: 50%;
+  flex-shrink: 0;
+  margin-right: 6vh;
+  transition: width .2s;
+}
+#breakdown .stats {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity .2s;
+}
+#breakdown .stat {
+  position: relative;
+  margin: 1.5vh 0;
+  display: flex;
+  opacity: .2;
+  transition: opacity .2s;
+}
+#breakdown .stat.active {
+  opacity: 1;
+}
+#breakdown .stat .icon {
+  margin-right: 7px;
+  display: flex;
+  align-items: center;
+}
+#breakdown .stat .icon div {
+  height: 7px;
+  width: 7px;
+  border-radius: 50%;
+}
+#breakdown .stat .title {
+  text-transform: uppercase;
+  line-height: 1em;
+}
+
+@media only screen and (max-width: 850px) {
+  #breakdown .stats { opacity: 0 }
+}
+
+/*.mobile #breakdown .space { margin-right: 40px }*/
