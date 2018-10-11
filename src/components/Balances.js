@@ -1,26 +1,27 @@
 import React, { Component } from 'react';
 import anime from 'animejs';
+import moment from 'moment';
 import { 
   round, 
   getNumberProperties, 
   getColorProperties, 
   glow,
   colorMap,
+  makeDoubleDecimal,
 } from '../utils';
+import { 
+  threedot,
+} from '../utils/icons';
 
 require('./balances.css');
-
-/*
-BALANCE
-ytd contrib / max yr contrib
-total contrib / amount gained (like YT like/dislike bar)
-*/
 
 export default class Balances extends Component {
   state = {};
   meta = {}
 
   componentWillReceiveProps = props => {
+    // ANIMATE TRANSITIONS
+    if(this.state.showData || this.props.mobile) return;
     const old = this.props.data[this.props.activeDates[1].format('L')],
           latest = props.data[props.activeDates[1].format('L')],
           perc = props.dataView === '%';
@@ -30,7 +31,7 @@ export default class Balances extends Component {
     if(old.adj.pl !== latest.adj.pl) shouldAnimate = true;
     if(this.props.feeAdjustments !== props.feeAdjustments) shouldAnimate = true;
     if(this.props.contributionAdjustments !== props.contributionAdjustments) shouldAnimate = true;
-    if(!this.props.mobile && shouldAnimate) {
+    if(shouldAnimate) {
       const { balance, ytd, pl } = this.refs;
       const anim = {
         balance_from: getNumberProperties(balance.textContent.replace(perc ? '%' : '$','')).value,
@@ -52,7 +53,7 @@ export default class Balances extends Component {
           if(anim.balance_from_history !== anim.balance_from) {
             const valEls = balance.querySelectorAll('[data-val]');
             const num = getNumberProperties(round(anim.balance_from, 2));
-            this.makeDoubleDecimal(num);
+            makeDoubleDecimal(num);
             num.comma.split('.').forEach((n, i) => { valEls[i].innerHTML = n});
           }
           if(anim.ytd_from_history !== anim.ytd_from) {
@@ -67,7 +68,7 @@ export default class Balances extends Component {
               pl.querySelector('[data-val]').innerHTML = num;
             } else {
               const num = getNumberProperties(round(anim.pl_from, 2));
-              this.makeDoubleDecimal(num);
+              makeDoubleDecimal(num);
               const valEls = pl.querySelectorAll('[data-val]');
               num.comma.split('.').forEach((n, i) => { valEls[i].innerHTML = n});
             }
@@ -80,13 +81,9 @@ export default class Balances extends Component {
     }
   }
 
-  makeDoubleDecimal = props => {
-    if(!props.comma.includes('.')) props.comma += '.00';
-    if(props.comma.split('.')[1].length < 2) props.comma += '0';
-  }
-
   render = () => {
     const { data, activeDates, dataView, mobile } = this.props;
+    const { showData } = this.state;
     const perc = dataView === '%';
     const latest = data[activeDates[1].format('L')],
           balance = getNumberProperties(round(latest.adj.balance, 2)),
@@ -101,76 +98,150 @@ export default class Balances extends Component {
                          latest.adj.plPerc <= 10 ? 2 :
                          latest.adj.plPerc <= 100 ? 1 : 0),
           plRange = 100 * Math.abs(pl.value) / (pl.value + total.value);
+    [balance,pl].map(v => makeDoubleDecimal(v));
+    let commIndex = data.meta.commission.length - 1,
+        currComm = data.meta.commission[commIndex];
+    while(moment(currComm[0],'L').isAfter(activeDates[1])) {
+      commIndex--;
+      currComm = data.meta.commission[commIndex];
+    }
 
-    [balance,pl].map(v => this.makeDoubleDecimal(v));
+    const calcAge = () => {
+      const start = moment(data.meta.start_date, 'L');
+      const days = activeDates[1].diff(start, 'days'),
+            months = round(days/30, 0),
+            years = round(months/12, 0);
+      if(days <= 31) return `${days} day${days !== 1 ? 's' : ''}`;
+      if(months <= 12) return `${months} month${months !== 1 ? 's' : ''}`;
+      let text = `${years} year${years !== 1 ? 's' : ''}`;
+      if(years < 5 && months % 12 > 0) text += `, ${months % 12} month${months % 12 !== 1 ? 's' : ''}`;
+      return text;
+    }
 
     return (
       <div className="tile-container" id="balances">
-        <div className="tile">
+        <div 
+          className={`tile ${showData ? 'show-data' : ''}`}
+          onClick={this.props.mobile ? e => this.setState({showData: !showData}) : null}
+        >
+          {
+            this.props.mobile ? null :
+            <div className="data-toggle" onClick={e => this.setState({showData: !showData})}>{threedot}</div>
+          }
           <div className="header">
             <div className="title">Balances</div>
           </div>
           <div className="body">
-            <div className="balance" ref="balance">
-              <span>
-                <span className="dsign">$</span>
-                <span data-val>{balance.comma.split('.')[0]}</span>
-              </span>
-              <small>.<span data-val>{balance.comma.split('.')[1]}</span></small>
-            </div>
-            <div className="stats">
+            <div className="main">
+              <div className="balance" ref="balance">
+                <span>
+                  <span className="dsign">$</span>
+                  <span data-val>{balance.comma.split('.')[0]}</span>
+                </span>
+                <small>.<span data-val>{balance.comma.split('.')[1]}</span></small>
+              </div>
+              <div className="stats">
 
-              <div className="stat">
-                {
-                  perc ? <div className="val" ref="ytd"><span data-val>{ytdPerc}</span><span className="psign">%</span></div>
-                  : <div className="val" ref="ytd"><span className="dsign">$</span><span data-val>{ytd.comma}</span></div>
-                }
-                <div className="title">YTD Contributions</div>
-                <div className="range">
-                  <div style={{
-                    width: ytdRange + '%',
-                    background: colorMap.cash,
-                    boxShadow: glow(getColorProperties(colorMap.cash))
-                  }} />
-                </div>
-                <div className="details">
+                <div className="stat">
                   {
-                    perc ? <span><span className="dsign">$</span>{ytd.comma} of max</span>
-                    : <span>{ytdPerc}<span className="psign">%</span>of max</span>
+                    perc ? <div className="val" ref="ytd"><span data-val>{ytdPerc}</span><span className="psign">%</span></div>
+                    : <div className="val" ref="ytd"><span className="dsign">$</span><span data-val>{ytd.comma}</span></div>
                   }
-                  <span><span className="dsign">$</span>{max.comma}</span>
+                  <div className="title">YTD Contributions</div>
+                  <div className="range">
+                    <div style={{
+                      width: ytdRange + '%',
+                      background: colorMap.cash,
+                      boxShadow: glow(getColorProperties(colorMap.cash))
+                    }} />
+                  </div>
+                  <div className="details">
+                    {
+                      perc ? <span><span className="dsign">$</span>{ytd.comma} of max</span>
+                      : <span>{ytdPerc}<span className="psign">%</span>of max</span>
+                    }
+                    <span><span className="dsign">$</span>{max.comma}</span>
+                  </div>
                 </div>
+
+                <div className="stat">
+                  {
+                    perc ? <div className="val" ref="pl"> <span data-val>{plPerc}</span><span className="psign">%</span> </div>
+                    : <div className="val" ref="pl">
+                      <span>
+                        <span className="dsign">$</span>
+                        <span data-val>{pl.comma.split('.')[0]}</span>
+                      </span>
+                      <small>.<span data-val>{pl.comma.split('.')[1]}</span></small>
+                    </div>
+                  }
+                  
+                  <div className="title">{mobile ? 'P/L' : 'Earnings'} vs Principle</div>
+                  <div className="range">
+                    <div style={{
+                      width: plRange + '%',
+                      background: pl.value < 0 ? colorMap.other : colorMap.mdy, // purple / green
+                      boxShadow: glow(getColorProperties(pl.value < 0 ? colorMap.other : colorMap.mdy))
+                    }} />
+                  </div>
+                  <div className="details">
+                    <span>
+                      { perc ? <span className="dsign">$</span> : null }
+                      { perc ? pl.comma.replace(mobile ? '' : '-','') : Math.abs(plPerc) }
+                      { perc ? null : <span className="psign">%</span> }
+                      { perc ? ' ' : null }{ mobile && perc ? null : plPerc > 0 ? 'profit' : 'loss' }
+                    </span>
+                    <span><span className="dsign">$</span>{total.comma}</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+            <div className="data">
+
+              <div className="data-group thin">
+                <label>Balance</label>
+                <div>${balance.comma}</div>
               </div>
 
-              <div className="stat">
-                {
-                  perc ? <div className="val" ref="pl"> <span data-val>{plPerc}</span><span className="psign">%</span> </div>
-                  : <div className="val" ref="pl">
-                    <span>
-                      <span className="dsign">$</span>
-                      <span data-val>{pl.comma.split('.')[0]}</span>
-                    </span>
-                    <small>.<span data-val>{pl.comma.split('.')[1]}</span></small>
-                  </div>
-                }
-                
-                <div className="title">{mobile ? 'P/L' : 'Earnings'} vs Principle</div>
-                <div className="range">
-                  <div style={{
-                    width: plRange + '%',
-                    background: pl.value < 0 ? colorMap.other : colorMap.mdy, // purple / green
-                    boxShadow: glow(getColorProperties(pl.value < 0 ? colorMap.other : colorMap.mdy))
-                  }} />
-                </div>
-                <div className="details">
-                  <span>
-                    { perc ? <span className="dsign">$</span> : null }
-                    { perc ? pl.comma.replace(mobile ? '' : '-','') : Math.abs(plPerc) }
-                    { perc ? null : <span className="psign">%</span> }
-                    { perc ? ' ' : null }{ mobile && perc ? null : plPerc > 0 ? 'profit' : 'loss' }
-                  </span>
-                  <span><span className="dsign">$</span>{total.comma}</span>
-                </div>
+              <div className="data-group">
+                <label>YTD Contributions</label>
+                <div>${ytd.comma}</div>
+              </div>
+
+              <div className="data-group">
+                <label>Total Fees</label>
+                <div>${makeDoubleDecimal(getNumberProperties(round(latest.total_fees, 2))).comma}</div>
+              </div>
+
+              <div className="data-group thin">
+                <label>P/L Open</label>
+                <div>${pl.comma}</div>
+              </div>
+
+              <div className="data-group">
+                <label>Total Contributions</label>
+                <div>${total.comma}</div>
+              </div>
+
+              <div className="data-group">
+                <label>Commission Rate</label>
+                <div>${currComm[1]}</div>
+              </div>
+
+              <div className="data-group thin">
+                <label>P/L Perc</label>
+                <div>{plPerc}%</div>
+              </div>
+
+              <div className="data-group">
+                <label>Max Contributions</label>
+                <div>${max.comma}</div>
+              </div>
+
+              <div className="data-group">
+                <label>Account Age</label>
+                <div>{calcAge()}</div>
               </div>
 
             </div>

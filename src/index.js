@@ -225,9 +225,19 @@ class App extends Component {
 
   onDateChange = (type, val) => {
     // debounce(() => {
-      const isOpt = type === 'opt',
-            activeDateOpt = isOpt ? val : -1,
-            activeDates = isOpt ? [DATE_OPTS[val].start, DATE_OPTS[val].end] : val;
+      const isOpt = type === 'opt';
+      let activeDateOpt = isOpt ? val : -1,
+          activeDates = isOpt ? [DATE_OPTS[val].start, DATE_OPTS[val].end] : val;
+      // check if date is valid
+      while(!this.meta.acctData[activeDates[0].format('L')]) activeDates[0].add(1, 'days');
+      while(!this.meta.acctData[activeDates[1].format('L')]) activeDates[1].subtract(1, 'days');
+      // check if dates are same as opt
+      if(!isOpt) {
+        DATE_OPTS.forEach((d,i) => {
+          if(activeDateOpt > -1) return;
+          if(d.start.isSame(activeDates[0]) && d.end.isSame(activeDates[1])) activeDateOpt = i;
+        })
+      }
       const activeData = this.trimData(activeDates);
 
       this.setState({ 

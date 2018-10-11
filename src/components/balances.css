@@ -5,11 +5,17 @@
   margin: 0 .3em 0 .15em;
 }
 
-#balances .body {
+#balances .body,
+#balances .main {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  flex-grow: 1;
   font-weight: 100;
+}
+
+#balances .main {
+  user-select: none;
 }
 
 #balances .balance,
@@ -79,6 +85,24 @@
 #balances .stat:hover .details,
 #balances .stat:hover .title {
   color: white;
+}
+
+#balances .data {
+  display: flex;
+  flex-wrap: wrap;
+}
+#balances .data-group {
+  width: 35%;
+  flex-grow: 0;
+  flex-shrink: 0;
+  margin-bottom: 10px;
+}
+#balances .data-group.thin {
+  width: 30%;
+}
+#balances .data-group label {
+  font-size: .8em;
+  color: hsla(220, 39%, 65%, .8);
 }
 
 @media only screen and (max-width: 767px) {

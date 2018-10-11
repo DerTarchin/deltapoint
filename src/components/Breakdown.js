@@ -42,7 +42,7 @@ export default class Breakdown extends Component {
     // show/hide stats if there's space
     const statRect = stats.getBoundingClientRect();
     // if(statRect.left + statRect.width)
-    console.log(statRect.left, statRect.width);
+    // console.log(statRect.left, statRect.width);
     stats.style.opacity = 1;
 
     // set svg viewboxes and items
@@ -53,7 +53,7 @@ export default class Breakdown extends Component {
       const r = constrain(baseRadius * (1 - (.15*i)), baseRadius - (18*i), baseRadius - (15*i));
       el.setAttribute('r', r);
       el.style.strokeDasharray = 2 * Math.PI * r;
-      el.style.strokeDashoffset = el.style.strokeDasharray * (1 - el.getAttribute('data-perc'));
+      el.style.strokeDashoffset = parseFloat(el.style.strokeDasharray) * (1 - el.getAttribute('data-perc'));
     });
     [...svg.querySelectorAll('.track')].forEach((el, i) => {
       const r = constrain(baseRadius * (1 - (.15*i)), baseRadius - (18*i), baseRadius - (15*i));
@@ -67,7 +67,7 @@ export default class Breakdown extends Component {
       const r = constrain(baseRadius * (1 - (.15*i)), baseRadius - (18*i), baseRadius - (15*i));
       circle.setAttribute('r', r);
       circle.style.strokeDasharray = 2 * Math.PI * r;
-      circle.style.strokeDashoffset = circle.style.strokeDasharray * (.999999);
+      circle.style.strokeDashoffset = parseFloat(circle.style.strokeDasharray) * (.999999);
       el.style.transform = `rotate(${-90 + (360 * circle.getAttribute('data-perc'))}deg)`;
     });
   }
@@ -75,7 +75,7 @@ export default class Breakdown extends Component {
   render = () => {
     const { data, activeDates, dataView, mobile } = this.props;
     const latest = data[activeDates[1].format('L')];
-    console.log(latest)
+    // console.log(latest)
 
     const positions = {
       mdy: {

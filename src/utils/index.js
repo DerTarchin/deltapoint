@@ -5,6 +5,7 @@ import {
   splitNumberSuffix,
   getFullNumber,
   getNumberProperties,
+  makeDoubleDecimal,
   round,
 } from './numformat';
 import {
@@ -97,6 +98,7 @@ export {
   splitNumberSuffix,
   getFullNumber,
   getNumberProperties,
+  makeDoubleDecimal,
   round,
   getAlpha,
   glow,

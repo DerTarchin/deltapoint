@@ -74,10 +74,17 @@ const round = (num, scale) => {
   }
 }
 
+const makeDoubleDecimal = props => {
+  if(!props.comma.includes('.')) props.comma += '.00';
+  if(props.comma.split('.')[1].length < 2) props.comma += '0';
+  return props;
+}
+
 export {
   formatNumber,
   splitNumberSuffix,
   getFullNumber,
   getNumberProperties,
+  makeDoubleDecimal,
   round,
 }
