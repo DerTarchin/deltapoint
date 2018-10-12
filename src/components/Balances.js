@@ -34,7 +34,7 @@ export default class Balances extends Component {
     if(shouldAnimate) {
       const { balance, ytd, pl } = this.refs;
       const anim = {
-        balance_from: getNumberProperties(balance.textContent.replace(perc ? '%' : '$','')).value,
+        balance_from: getNumberProperties(balance.textContent.replace('$','')).value,
         ytd_from: getNumberProperties(ytd.textContent.replace(perc ? '%' : '$','')).value,
         pl_from: getNumberProperties(pl.textContent.replace(perc ? '%' : '$','')).value,
       }
@@ -122,10 +122,10 @@ export default class Balances extends Component {
       <div className="tile-container" id="balances">
         <div 
           className={`tile ${showData ? 'show-data' : ''}`}
-          onClick={this.props.mobile ? e => this.setState({showData: !showData}) : null}
+          onClick={mobile ? e => this.setState({showData: !showData}) : null}
         >
           {
-            this.props.mobile ? null :
+            mobile ? null :
             <div className="data-toggle" onClick={e => this.setState({showData: !showData})}>{threedot}</div>
           }
           <div className="header">
@@ -198,52 +198,42 @@ export default class Balances extends Component {
               </div>
             </div>
             <div className="data">
+              <div>
 
-              <div className="data-group thin">
-                <label>Balance</label>
-                <div>${balance.comma}</div>
+                <div className="data-row label-row">
+                  <div className="label thin">Balance</div>
+                  <div className="label">YTD {mobile ? 'Funding' : 'Contributions'}</div>
+                  <div className="label">Total Fees</div>
+                </div>
+                <div className="data-row value-row">
+                  <div className="thin">${balance.comma}</div>
+                  <div>${ytd.comma}</div>
+                  <div>${makeDoubleDecimal(getNumberProperties(round(latest.total_fees, 2))).comma}</div>
+                </div>
+
+                <div className="data-row label-row">
+                  <div className="label thin">P/L Open</div>
+                  <div className="label">Total {mobile ? 'Funding' : 'Contributions'}</div>
+                  <div className="label">Commission {mobile ? null : 'Rate'}</div>
+                </div>
+                <div className="data-row value-row">
+                  <div className="thin">${pl.comma}</div>
+                  <div>${total.comma}</div>
+                  <div>${currComm[1]}</div>
+                </div>
+
+                <div className="data-row label-row">
+                  <div className="label thin">P/L Perc</div>
+                  <div className="label">Max {mobile ? 'Funding' : 'Contributions'}</div>
+                  <div className="label">Account Age</div>
+                </div>
+                <div className="data-row value-row">
+                  <div className="thin">{plPerc}%</div>
+                  <div>${max.comma}</div>
+                  <div>{calcAge()}</div>
+                </div>
+
               </div>
-
-              <div className="data-group">
-                <label>YTD Contributions</label>
-                <div>${ytd.comma}</div>
-              </div>
-
-              <div className="data-group">
-                <label>Total Fees</label>
-                <div>${makeDoubleDecimal(getNumberProperties(round(latest.total_fees, 2))).comma}</div>
-              </div>
-
-              <div className="data-group thin">
-                <label>P/L Open</label>
-                <div>${pl.comma}</div>
-              </div>
-
-              <div className="data-group">
-                <label>Total Contributions</label>
-                <div>${total.comma}</div>
-              </div>
-
-              <div className="data-group">
-                <label>Commission Rate</label>
-                <div>${currComm[1]}</div>
-              </div>
-
-              <div className="data-group thin">
-                <label>P/L Perc</label>
-                <div>{plPerc}%</div>
-              </div>
-
-              <div className="data-group">
-                <label>Max Contributions</label>
-                <div>${max.comma}</div>
-              </div>
-
-              <div className="data-group">
-                <label>Account Age</label>
-                <div>{calcAge()}</div>
-              </div>
-
             </div>
           </div>
         </div>

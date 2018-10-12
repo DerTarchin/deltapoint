@@ -17,7 +17,7 @@ const MOBILE_DEV = false;
 const demoVals = data => {
   const day = moment(data.meta.last_updated, 'L'),
         start = moment(data.meta.start_date, 'L');
-  while(day.isSameOrAfter(start)) {
+  while(day.isSameOrAfter(start, 'days')) {
     const d = data[day.format('L')]
     if(d && DEMO) {
       d.total_contributions *= 13;
@@ -176,7 +176,7 @@ class App extends Component {
     dates = dates || this.state.activeDates;
     const { acctData } = this.meta;
     const data = { meta: acctData.meta };
-    for(const day = dates[0].clone(); day.isSameOrBefore(dates[1]); day.add(1, 'days')) {
+    for(const day = dates[0].clone(); day.isSameOrBefore(dates[1], 'days'); day.add(1, 'days')) {
       const formatted = day.format('L');
       data[formatted] = acctData[formatted];
     }
@@ -193,7 +193,7 @@ class App extends Component {
     const day = moment(data.meta.last_updated, 'L'),
           start = moment(data.meta.start_date, 'L');
     let tcontrib;
-    while(day.isSameOrAfter(start)) {
+    while(day.isSameOrAfter(start, 'days')) {
       const d = data[day.format('L')]
       if(d) {
         if(!tcontrib) tcontrib = d.total_contributions;
@@ -235,7 +235,7 @@ class App extends Component {
       if(!isOpt) {
         DATE_OPTS.forEach((d,i) => {
           if(activeDateOpt > -1) return;
-          if(d.start.isSame(activeDates[0]) && d.end.isSame(activeDates[1])) activeDateOpt = i;
+          if(d.start.isSame(activeDates[0], 'days') && d.end.isSame(activeDates[1], 'days')) activeDateOpt = i;
         })
       }
       const activeData = this.trimData(activeDates);

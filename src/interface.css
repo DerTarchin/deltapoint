@@ -79,12 +79,18 @@
   position: absolute;
   height: 100%;
   width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   pointer-events: none;
   opacity: 0;
-  transform: translate3d(100%,0,0);
+  transform: translate3d(0,100%,0);
+}
+.tile .data > div {
+  width: 100%;
 }
 .tile .data, .tile .main {
-  transition: transform .3s, opacity .15s, filter .15s;
+  transition: transform .3s, opacity .15s, filter .3s;
 }
 .tile.show-data .data {
   pointer-events: all;
@@ -92,10 +98,9 @@
   transform: translate3d(0,0,0);
 }
 .tile.show-data .main {
-  /*opacity: 0;*/
   pointer-events: none;
-  /*transform: translate3d(-100%,0,0);*/
   filter: blur(30px);
+  transform: translate3d(0,0,0);
 }
 .tile .data-toggle {
   position: absolute;
@@ -138,7 +143,7 @@
   }
   .app:not(.mobile) .tile .data-toggle {
     top: 20px;
-    right: 20px;
+    right: 30px;
   }
 }
 
@@ -367,6 +372,7 @@ ul.app-opts { margin-left: -12px }
   align-items: center;
   padding-bottom: 70px;
   filter: blur(10px);
+  transform: translate3d(0,0,0);
 }
 .mobile-menu .hideBanner {
   width: 100vw;

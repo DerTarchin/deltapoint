@@ -210,7 +210,7 @@ export default class Interface extends Component {
     const setupTicks = () => {
       const weekdays = [];
       const time = this.state.scrubberEnd.clone();
-      while(weekdays.length < SCRUBBER_RANGE && time.isSameOrAfter(moment(this.props.data.meta.start_date, 'L'))) {
+      while(weekdays.length < SCRUBBER_RANGE && time.isSameOrAfter(moment(this.props.data.meta.start_date, 'L'), 'days')) {
         if(WEEKDAY(time)) weekdays.unshift(time.format('L'));
         time.subtract(1, 'days');
       }
@@ -323,7 +323,7 @@ export default class Interface extends Component {
     const mod = e.currentTarget === this.refs.scrubBackwards ? -1 : 1;
     let diff = 0;
     // shift by RANGE or (if upward) until last day
-    while(diff < SCRUBBER_RANGE-1 && end.isSameOrBefore(this.props.lastDay)) {
+    while(diff < SCRUBBER_RANGE-1 && end.isSameOrBefore(this.props.lastDay, 'days')) {
       if(WEEKDAY(end)) diff++;
       end.add(mod, 'days');
     }
@@ -331,7 +331,7 @@ export default class Interface extends Component {
     if(mod < 0) {
       let ticks = 0;
       const start = end.clone();
-      while(ticks < SCRUBBER_RANGE && start.isSameOrAfter(moment(this.props.data.meta.start_date, 'L'))) {
+      while(ticks < SCRUBBER_RANGE && start.isSameOrAfter(moment(this.props.data.meta.start_date, 'L'), 'days')) {
         if(WEEKDAY(start)) ticks++;
         start.subtract(1, 'days');
       }
@@ -339,7 +339,7 @@ export default class Interface extends Component {
         diff = 0;
         end = moment(this.props.data.meta.start_date, 'L');
         // shift by RANGE or (if upward) until last day
-        while(diff < SCRUBBER_RANGE-1 && end.isSameOrBefore(this.props.lastDay)) {
+        while(diff < SCRUBBER_RANGE-1 && end.isSameOrBefore(this.props.lastDay, 'days')) {
           if(WEEKDAY(end)) diff++;
           end.add(1, 'days');
         }
