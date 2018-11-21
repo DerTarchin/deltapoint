@@ -77,13 +77,14 @@ class App extends Component {
     activeDates: [DATE_OPTS[0].start, DATE_OPTS[0].end],
     feeAdjustments: false,
     contributionAdjustments: true,
-    dataView: '$',
-  };
+    dataView: '%',
+  }
   meta = {}
 
   componentWillMount = () => {
     // disable overscroll on mobile
     document.addEventListener('touchmove', e => e.preventDefault(), false);
+    window.addEventListener('orientationchange', () => this.setState({ mobileOrientation: window.orientation }), false);
   }
 
   componentDidMount = () => {
@@ -92,7 +93,7 @@ class App extends Component {
       if(error || !body) alert('Error: ' + error);
       this.meta.encryptedMsg = JSON.parse(body).encryptedMsg;
       // dev
-      setTimeout(() => this.unlock('ord-mantell'), 500);
+      
     });
     if(this.state.encrypted) {
       // activate anime.js for unlock dialog
@@ -257,6 +258,7 @@ class App extends Component {
     const isMobile = MOBILE_DEV || window.screen.width <= 767;
     const interfaceProps = this.state.encrypted ? {} : {
       data: this.state.activeData,
+      history: this.meta.acctData,
       
       lastDay: this.state.lastDay,
       dateOpts: DATE_OPTS,
@@ -274,6 +276,7 @@ class App extends Component {
       <div 
         className={`app ${isMobile ? 'mobile' : ''} ${MOBILE_DEV ? 'dev' : ''}`} 
         id="app"
+        key={this.state.mobileOrientation}
         style={{background: 'rgba(0,0,0,.15)'}}
       >
         {

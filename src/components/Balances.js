@@ -223,7 +223,7 @@ export default class Balances extends Component {
                 </div>
 
                 <div className="data-row label-row">
-                  <div className="label thin">P/L Perc</div>
+                  <div className="label thin">P/L Open %</div>
                   <div className="label">Max {mobile ? 'Funding' : 'Contributions'}</div>
                   <div className="label">Account Age</div>
                 </div>

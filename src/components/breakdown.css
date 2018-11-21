@@ -38,49 +38,129 @@
 #breakdown circle.mark {
   stroke: #445db1;
   stroke-width: 3.5px;
+  z-index: 1;
 }
 
 #breakdown .space {
   width: 50%;
   flex-shrink: 0;
-  margin-right: 6vh;
+  /*margin-right: 6vh;*/
   transition: width .2s;
 }
-#breakdown .stats {
-  width: 100%;
+#breakdown .stats-container {
+  flex-grow: 1;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#breakdown .keys {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity .2s;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  user-select: none;
 }
-#breakdown .stat {
+#breakdown .no-stats {
+  justify-content: center;
+}
+#breakdown .no-stats .stats-container {
+  visibility: hidden;
+  position: absolute;
+  z-index: -1;
+}
+#breakdown .all .stats-container {
+  padding-left: 3vh;
+}
+#breakdown .key {
   position: relative;
-  margin: 1.5vh 0;
+  padding: 1vh 0;
   display: flex;
   opacity: .2;
+  flex-shrink: 1;
+  flex-grow: 0;
+  pointer-events: none;
   transition: opacity .2s;
 }
-#breakdown .stat.active {
+#breakdown .key.active {
   opacity: 1;
+  cursor: pointer;
 }
-#breakdown .stat .icon {
+#breakdown .all .key {
+/*#breakdown .all .key.active {*/
+  pointer-events: all;
+}
+#breakdown .key .icon {
   margin-right: 7px;
   display: flex;
   align-items: center;
 }
-#breakdown .stat .icon div {
+#breakdown .key .icon div {
   height: 7px;
   width: 7px;
   border-radius: 50%;
 }
-#breakdown .stat .title {
+#breakdown .key .title {
   text-transform: uppercase;
   line-height: 1em;
+  transition: transform .07s;
 }
-
-@media only screen and (max-width: 850px) {
-  #breakdown .stats { opacity: 0 }
+#breakdown .key:hover .title,
+#breakdown .key.expanded .title {
+  transform: translateX(3px);
 }
-
-/*.mobile #breakdown .space { margin-right: 40px }*/
+#breakdown .key .title span {
+  margin-left: 8px; 
+  opacity: .5;
+}
+#breakdown .no-details .details {
+  display: none;
+}
+#breakdown .details {
+  flex-grow: 1;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding-left: 3vh;
+  overflow: auto;
+}
+#breakdown .group {
+  padding: 15px 5px;
+  background: rgba(255,255,255,.03);
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+#breakdown .details > :last-child {
+  margin-bottom: 0;
+}
+#breakdown .row,
+#breakdown .single {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 5px;
+}
+#breakdown .row > div:nth-of-type(1) {
+  text-align: right;
+}
+#breakdown .row > div:nth-of-type(2) {
+  text-align: center;
+}
+#breakdown .col {
+  width: 33%;
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+#breakdown .label {
+  text-transform: uppercase;
+  font-size: .8em;
+  color: hsla(220, 39%, 65%, .8);
+}
+#breakdown .details .strat {
+  font-weight: 500;
+}
+#breakdown .details .date {
+  margin-top: 15px;
+  font-weight: 600;
+  font-size: .9em;
+}
