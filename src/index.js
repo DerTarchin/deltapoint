@@ -30,7 +30,7 @@ const demoVals = data => {
 }
 
 const REQUEST = require('request');
-const DATA_URL = 'http://hizalcelik.com/dev/deltapoint.appdata.encrypted.json';
+const DATA_URL = 'http://dev.hizalcelik.com/deltapoint.appdata.encrypted.json';
 const IS_ENTER = e => (e.key || e.keyCode) === 'Enter' || e.which === 13;
 
 const LOGIN_ANIM_DURATION = 1000;
@@ -93,7 +93,7 @@ class App extends Component {
       if(error || !body) alert('Error: ' + error);
       this.meta.encryptedMsg = JSON.parse(body).encryptedMsg;
       // dev
-      
+      setTimeout(() => this.unlock('ord-mantell'), 500);
     });
     if(this.state.encrypted) {
       // activate anime.js for unlock dialog
@@ -149,7 +149,7 @@ class App extends Component {
     this.adjData();
 
     this.setState({ 
-      activeData: this.trimData(), 
+      activeData: this.trimData([DATE_OPTS[0].start, DATE_OPTS[0].end]), 
       accounts, 
       activeAccount, 
       lastDay,
