@@ -30,7 +30,7 @@ const demoVals = data => {
 }
 
 const REQUEST = require('request');
-const DATA_URL = 'http://dev.hizalcelik.com/deltapoint.appdata.encrypted.json';
+const DATA_URL = 'https://raw.githubusercontent.com/DerTarchin/misc/master/.dpd';
 const IS_ENTER = e => (e.key || e.keyCode) === 'Enter' || e.which === 13;
 
 const LOGIN_ANIM_DURATION = 1000;

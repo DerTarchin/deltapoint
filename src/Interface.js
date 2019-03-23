@@ -96,8 +96,8 @@ export default class Interface extends Component {
           const currFromDate = fromStartDate.clone().add(diffs.fromdiff, 'days'),
                 currToDate = toStartDate.clone().add(diffs.todiff, 'days');
           if(years.length) {
-            years[0].innerHTML = currFromDate.year();  
-            if(years[1]) years[1].innerHTML = currToDate.year();
+            years[0].innerHTML = ', ' + currFromDate.year();
+            if(years[1]) years[1].innerHTML = ', ' + currToDate.year();
           }
           rest[0].innerHTML = currFromDate.format('MMM D');
           if(rest[1]) rest[1].innerHTML = currToDate.format('MMM D');
