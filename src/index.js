@@ -12,22 +12,7 @@ import {
 
 require('./app.css');
 
-const DEMO = false;
 const MOBILE_DEV = false;
-const demoVals = data => {
-  const day = moment(data.meta.last_updated, 'L'),
-        start = moment(data.meta.start_date, 'L');
-  while(day.isSameOrAfter(start, 'days')) {
-    const d = data[day.format('L')]
-    if(d && DEMO) {
-      d.total_contributions *= 13;
-      d.balance *= 33;
-      d.cash_balance *= 33;
-      d.total_fees *= 33;
-    }
-    day.subtract(1, 'days');
-  }
-}
 
 const REQUEST = require('request');
 const DATA_URL = 'https://raw.githubusercontent.com/DerTarchin/misc/master/.dpd';
@@ -75,8 +60,8 @@ class App extends Component {
     lastDay: NOW,
     activeDateOpt: 0,
     activeDates: [DATE_OPTS[0].start, DATE_OPTS[0].end],
-    feeAdjustments: false,
-    contributionAdjustments: true,
+    feeAdjustments: true,
+    contributionAdjustments: false,
     dataView: '%',
   }
   meta = {}
@@ -89,12 +74,14 @@ class App extends Component {
 
   componentDidMount = () => {
     // retrieve encrypted data
-    REQUEST(DATA_URL, (error, response, body) => {
-      if(error || !body) alert('Error: ' + error);
+    if(DATA_URL) REQUEST(DATA_URL, (error, response, body) => {
+      if(error || !body) alert(error);
       this.meta.encryptedMsg = JSON.parse(body).encryptedMsg;
       // dev
       setTimeout(() => this.unlock('ord-mantell'), 500);
     });
+
+    // ===
     if(this.state.encrypted) {
       // activate anime.js for unlock dialog
       this.meta.loginAnime = anime({
@@ -121,6 +108,7 @@ class App extends Component {
       this.setState({ unlockError: 'Incorrect passphrase.'})
       return;
     }
+    console.log(data.dertarchinroth)
 
     // parse data
     const accounts = Object.keys(data),
@@ -145,15 +133,14 @@ class App extends Component {
     });
 
     // apply adjustments
-    if(DEMO) demoVals(acctData);
     this.adjData();
 
     this.setState({ 
       activeData: this.trimData([DATE_OPTS[0].start, DATE_OPTS[0].end]), 
+      activeDates: [DATE_OPTS[0].start, DATE_OPTS[0].end],
       accounts, 
       activeAccount, 
       lastDay,
-      activeDates: [DATE_OPTS[0].start, DATE_OPTS[0].end],
       encrypted: false,
     }, () => {
       this.meta.loginAnime = anime({
@@ -203,7 +190,7 @@ class App extends Component {
           cash_balance: d.cash_balance,
           total_contributions: d.total_contributions
         };
-        if(fee) {
+        if(!fee) {
           adj.balance += d.total_fees;
           adj.cash_balance += d.total_fees;
         }

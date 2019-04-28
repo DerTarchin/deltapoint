@@ -8,6 +8,7 @@ import {
   glow,
   colorMap,
   makeDoubleDecimal,
+  getLatest
 } from '../utils';
 import { 
   threedot,
@@ -22,8 +23,8 @@ export default class Balances extends Component {
   componentWillReceiveProps = props => {
     // ANIMATE TRANSITIONS
     if(this.state.showData || this.props.mobile) return;
-    const old = this.props.data[this.props.activeDates[1].format('L')],
-          latest = props.data[props.activeDates[1].format('L')],
+    const old = getLatest(this.props.data, this.props.activeDates[1]),
+          latest = getLatest(props.data, props.activeDates[1]),
           perc = props.dataView === '%';
     let shouldAnimate = false;
     if(old.adj.balance !== latest.adj.balance) shouldAnimate = true;
@@ -42,7 +43,7 @@ export default class Balances extends Component {
       this.meta.valAnims = anime({
         targets: anim, 
         balance_from: latest.adj.balance,
-        ytd_from: perc ? round(100 * latest.ytd_contributions / props.data.meta.max_contribution, 0) 
+        ytd_from: perc ? round(100 * latest.ytd_contributions / this.getMaxContributions(props.activeDates[1]), 0) 
                   : latest.ytd_contributions,
         pl_from: perc ? latest.adj.plPerc : latest.adj.pl,
         easing: 'easeOutExpo',
@@ -81,15 +82,24 @@ export default class Balances extends Component {
     }
   }
 
+  getMaxContributions = date => {
+    let pair, year = date.year();
+    while(!pair) {
+      pair = this.props.data.meta.max_contribution.find(mc => mc[0] === year)
+      year--;
+    }
+    return pair[1];
+  }
+
   render = () => {
     const { data, activeDates, dataView, mobile } = this.props;
     const { showData } = this.state;
     const perc = dataView === '%';
-    const latest = data[activeDates[1].format('L')],
+    const latest = getLatest(data, activeDates[1]),
           balance = getNumberProperties(round(latest.adj.balance, 2)),
           // balance = getNumberProperties(round(123456.78, 2)),
           ytd = getNumberProperties(round(latest.ytd_contributions, 2)),
-          max = getNumberProperties(round(data.meta.max_contribution, 2)),
+          max = getNumberProperties(round(this.getMaxContributions(activeDates[1]), 2)),
           ytdRange = 100 * ytd.value / max.value,
           ytdPerc = round(ytdRange, 0),
           total = getNumberProperties(round(latest.adj.total_contributions, 2)),
@@ -105,6 +115,7 @@ export default class Balances extends Component {
       commIndex--;
       currComm = data.meta.commission[commIndex];
     }
+    console.log('LATEST', latest)
 
     const calcAge = () => {
       const start = moment(data.meta.start_date, 'L');
@@ -180,8 +191,8 @@ export default class Balances extends Component {
                   <div className="range">
                     <div style={{
                       width: plRange + '%',
-                      background: pl.value < 0 ? colorMap.other : colorMap.mdy, // purple / green
-                      boxShadow: glow(getColorProperties(pl.value < 0 ? colorMap.other : colorMap.mdy))
+                      background: pl.value < 0 ? colorMap.other : colorMap.tactical, // purple / green
+                      boxShadow: glow(getColorProperties(pl.value < 0 ? colorMap.other : colorMap.tactical))
                     }} />
                   </div>
                   <div className="details">

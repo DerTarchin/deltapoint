@@ -78,15 +78,24 @@ const sepFrmt = (start, end) => {
 const p5map = (val, inMin, inMax, outMin, outMax) => outMin + (outMax - outMin) * ((val - inMin) / (inMax - inMin))
 
 const colorMap = {
-  'mdy': '#71f48b', // hsl(132, 85%, 70%) = green,
-  'ziv': '#5af2f2', // hsl(180, 85%, 65%) = blue 
-  'svxy': '#559ef6', // hsl(213, 90%, 65%) = dark blue faded
-  'cash': '#b6a0f8', // hsl(255, 85%, 80%) = lilac,
-  'other': '#f688de', // hsl(313, 85%, 75%) = pink,
-  'bg': '#445db1', // hsl(226, 44%, 48%) = dark blue faded
+  tactical: '#71f48b', // hsl(132, 85%, 70%) = green,
+  conservative: '#5af2f2', // hsl(180, 85%, 65%) = blue 
+  aggressive: '#559ef6', // hsl(213, 90%, 65%) = dark blue faded
+  cash: '#b6a0f8', // hsl(255, 85%, 80%) = lilac,
+  other: '#f688de', // hsl(313, 85%, 75%) = pink,
+  bg: '#445db1', // hsl(226, 44%, 48%) = dark blue faded
 }
 
 const constrain = (val, min, max) => val < min ? min : val > max ? max : val
+
+const getLatest = (data, date) => {
+  let latest, day = date.clone();
+  while(!latest) {
+    latest = data[day.format('L')];
+    day.subtract(1, 'days');
+  }
+  return latest;
+}
 
 export {
   decrypt,
@@ -105,5 +114,6 @@ export {
   getColorProperties,
   p5map,
   constrain,
-  colorMap
+  colorMap,
+  getLatest
 }

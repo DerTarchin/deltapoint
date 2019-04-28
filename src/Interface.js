@@ -147,7 +147,10 @@ export default class Interface extends Component {
   handleKey = e => {
     const { onSettingsChange, onDateChange } = this.props;
     switch(e.code) {
-      case 'Space': return this.changeHeader();
+      case 'Space': 
+        e.preventDefault();
+        e.stopPropagation();
+        return this.changeHeader();
       case 'KeyD': 
         if(this.state.headerIndex) this.changeHeader();
         onSettingsChange('dataView', '$');
@@ -323,7 +326,7 @@ export default class Interface extends Component {
     const mod = e.currentTarget === this.refs.scrubBackwards ? -1 : 1;
     let diff = 0;
     // shift by RANGE or (if upward) until last day
-    while(diff < SCRUBBER_RANGE-1 && end.isSameOrBefore(this.props.lastDay, 'days')) {
+    while(diff < SCRUBBER_RANGE-1 && end[mod < 0 ? 'isSameOrBefore' : 'isBefore'](this.props.lastDay, 'days')) {
       if(WEEKDAY(end)) diff++;
       end.add(mod, 'days');
     }
@@ -447,7 +450,11 @@ export default class Interface extends Component {
               <div className="scrubber" ref="scrubber">
                 {renderDates()}
                 <canvas ref="canvas" onClick={this.scrubSelect} />
-                <div className={`arrow backwards ${weekdays && weekdays[0] === this.props.data.meta.start_date ? 'disabled' : ''}`} ref="scrubBackwards" onClick={this.scrubAdjust}>
+                <div 
+                  className={`arrow backwards ${weekdays && weekdays[0] === this.props.data.meta.start_date ? 'disabled' : ''}`} 
+                  ref="scrubBackwards" 
+                  onClick={this.scrubAdjust}
+                >
                   <span className="clickitem">{doublearrow}</span>
                 </div>
                 <div 
@@ -474,9 +481,13 @@ export default class Interface extends Component {
 
         <div className="interface-content" onMouseEnter={this.scrub}>
           <section className="tile-col left">
-            <Portfolio {...this.props} />
+            {
+              <Portfolio {...this.props} />
+            }
             <Balances {...this.props} />
-            <Volatility {...this.props} />
+            {
+              <Volatility {...this.props} />
+            }
           </section>
           <section className="tile-col right">
             <Breakdown {...this.props} />

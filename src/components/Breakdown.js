@@ -9,12 +9,26 @@ import {
   glow,
   colorMap,
   constrain,
+  getLatest,
 } from '../utils';
 
 require('./breakdown.css');
 
 const RADIUS = 4.8, CIRC = 2 * Math.PI * RADIUS;
-const VTS = ['mdy','ziv','svxy'];
+const VTS = {
+  tactical: {
+    tickers: ['mdy','ief','gld'],
+    label: 'VTS Tactical'
+  },
+  aggressive: {
+    tickers: ['svxy','vixy'],
+    label: 'VTS Aggressive'
+  },
+  conservative: {
+    tickers: ['ziv','vxz'],
+    label: 'VTS Conservative'
+  }
+}
 
 export default class Breakdown extends Component {
   state = {
@@ -42,45 +56,49 @@ export default class Breakdown extends Component {
     window.removeEventListener('resize', this.resizeGraphs);
   }
 
+  getVTS = sym => {
+    return Object.keys(VTS).find(key => VTS[key].tickers.includes(sym));
+  }
+
   calcTradeDetails = (props = this.props) => {
     const { history, feeAdjustments } = props;
     const tradeDetails = {};
     history.meta.symbols_traded.forEach(sym => {
+      const key = this.getVTS(sym) || sym;
       let dets = {
         buys: 0, // total money spent
         sells: 0, // total money back
         trades: 0, // total completed trades
+        ...tradeDetails[key]
       }
-      if(sym === 'mdy') dets.strat = 'VTS Tactical';
-      if(sym === 'svxy') dets.strat = 'VTS Aggressive';
-      if(sym === 'ziv') dets.strat = 'VTS Conservative';
+      if(this.getVTS(sym)) dets.strat = VTS[this.getVTS(sym)].label
       const day = moment(history.meta.start_date, 'L');
-      let currShares = 0;
       while(day.isSameOrBefore(props.activeDates[1], 'days')) {
         const data = history[day.format('L')];
-        if(!data || !data.transactions) {
+        if(!data) {
           day.add(1, 'days');
           continue;
         }
+
         let adj = 0;
         if(feeAdjustments) {
           const coms = history.meta.commission.filter(c => moment(c[0], 'L').isSameOrBefore(day));
           adj = coms[coms.length-1][1];
         }
-        const trans = data.transactions.find(t => t.symbol === sym);
-        if(trans) {
-          if(trans.type === 'buy') {
-            if(!currShares) dets.trades++;
-            currShares += trans.shares;
-            dets.buys += Math.abs(trans.shares * trans.price) + adj;
-          }
-          if(trans.type === 'sell') {
-            currShares -= trans.shares;
-            dets.sells += Math.abs(trans.shares * trans.price) + adj;
-          }
+
+        if(data.transactions) {
+          const transactions = data.transactions.filter(t => t.symbol === sym);
+          transactions.forEach(trans => {
+            if(trans.type === 'buy') {
+              if((data.positions[sym] || {}).shares === trans.shares) dets.trades++;
+              dets.buys += Math.abs(trans.shares * trans.price) + adj;
+            }
+            if(trans.type === 'sell') dets.sells += Math.abs(trans.shares * trans.price) + adj;
+          });
         }
+        
         if(day.isSame(props.activeDates[1], 'days')) {
-          if(data.active_investments.includes(sym)) {
+          if(Object.keys(data.positions).includes(sym)) {
             const currData = data.positions[sym];
             dets.sells += currData.shares * currData.c;
             dets = { ...dets, ...currData };
@@ -90,7 +108,7 @@ export default class Breakdown extends Component {
           const perc = 100*(dets.sells - dets.buys)/dets.buys;
           dets.total_pl_perc = round(perc, perc > 100 ? 0 : 1);
         }
-        tradeDetails[sym] = dets;
+        tradeDetails[key] = dets;
         day.add(1, 'days');
       }
     });
@@ -102,12 +120,12 @@ export default class Breakdown extends Component {
     const { display } = this.state;
 
     // resize graph container
-    const size = Math.min(body.clientHeight, body.clientWidth);
+    const size = Math.min(graphspace.clientWidth, graphspace.clientHeight);
     graphs.style.width = size + 'px';
-    graphspace.style.width = size + 'px';
     graphs.style.height = size + 'px';
     graphs.setAttribute('data-sized', true);
-    details.style.maxHeight = (body.clientHeight - 5) + 'px';
+    graphs.querySelectorAll('svg').forEach(el => el.setAttribute('viewBox', `0 0 ${size} ${size}`))
+    if(details) details.style.maxHeight = (body.clientHeight - 5) + 'px';
 
     if(body.clientWidth < size + keys.clientWidth) {
       if(display !== 'no-stats') this.setState({ display: 'no-stats' });
@@ -147,16 +165,16 @@ export default class Breakdown extends Component {
   render = () => {
     const { data, activeDates, dataView, mobile } = this.props;
     const { holdKey, key } = this.state;
-    const latest = data[activeDates[1].format('L')];
+    const latest = getLatest(data, activeDates[1]);
 
     const positions = {
-      mdy: {
+      tactical: {
         index: 0,
       },
-      ziv: {
+      conservative: {
         index: 1,
       },
-      svxy: {
+      aggressive: {
         index: 2,
       },
       other: {
@@ -171,11 +189,11 @@ export default class Breakdown extends Component {
         index: 3,
       }
     }
-    latest.active_investments.forEach(sym => {
+    Object.keys(latest.positions).forEach(sym => {
       const { shares, avg, since } = latest.positions[sym],
             cost = shares * avg,
-            useOther = !VTS.includes(sym),
-            pos = positions[useOther ? 'other' : sym];
+            useOther = !this.getVTS(sym),
+            pos = positions[this.getVTS(sym) || 'other'];
       if(useOther) {
         pos.shares.push(shares)
         pos.avgs.push(avg);
@@ -198,14 +216,14 @@ export default class Breakdown extends Component {
           <div className="row">
             <div style={{width: '100%', textAlign: 'center'}}>
               <div className="label">Cash Balance</div>
-              <div className="value">${getNumberProperties(latest.adj.cash_balance).comma}</div>
+              <div className="value">${makeDoubleDecimal(getNumberProperties(latest.adj.cash_balance)).comma}</div>
             </div>
           </div>
         </div>
       }
-      const syms = key !== 'other' ? [key] : latest.active_investments.filter(s => !VTS.includes(s));
+      const syms = key !== 'other' ? [key] : Object.keys(latest.positions).filter(s => !this.getVTS(s));
       const html = syms.map(sym => {
-        const dets = this.state.tradeDetails[sym];
+        const dets = this.state.tradeDetails[this.getVTS(sym) || sym];
         return <div className="group" key={sym}>
           <div className="single strat">{ dets.strat || sym.toUpperCase() }</div>
           <div className="row">
@@ -268,55 +286,56 @@ export default class Breakdown extends Component {
             <div className="title">Positions</div>
           </div>
           <div className={`body ${this.state.display}`} ref="body">
-            <div className="radial-graphs square" ref="graphs">
-              <svg ref="svg">
-                <defs>
-                  <filter id="glow">
-                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                      <feMerge>
-                        <feMergeNode in="coloredBlur"/>
-                        <feMergeNode in="SourceGraphic"/>
-                      </feMerge>
-                    </filter>
-                </defs>
-                { Object.keys(positions).map((pos, i) => <circle key={i} className="track" cx="50%" cy="50%" />) }
+            <div className="space" ref="graphspace">
+              <div className="radial-graphs square" ref="graphs">
+                <svg ref="svg">
+                  <defs>
+                    <filter id="glow">
+                      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                        <feMerge>
+                          <feMergeNode in="coloredBlur"/>
+                          <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                      </filter>
+                  </defs>
+                  { Object.keys(positions).map((pos, i) => <circle key={i} className="track" cx="50%" cy="50%" />) }
+                  {
+                    Object.keys(positions).map(pos => {
+                      return <circle 
+                        key={pos}
+                        className="color"
+                        data-index={positions[pos].index}
+                        data-perc={Math.max(positions[pos].perc, .00001)}
+                        style={{ stroke: colorMap[pos] }}
+                        filter="url(#glow)"
+                        cx="50%" 
+                        cy="50%" 
+                      />
+                    })
+                  }
+                </svg>
                 {
                   Object.keys(positions).map(pos => {
-                    return <circle 
-                      key={pos}
-                      className="color"
+                    if(pos === 'cash') return null;
+                    let goal = .24; // percent size of account
+                    if(pos === 'tactical') goal = .32;
+                    if(pos === 'other') {
+                      goal = .2;
+                      if(goal > positions[pos].perc) return null;
+                    }
+                    // TODO make more accurate based on prices
+                    return <svg id={'mark-'+pos} key={pos}><circle 
+                      className="mark"
                       data-index={positions[pos].index}
-                      data-perc={Math.max(positions[pos].perc, .00001)}
-                      style={{ stroke: colorMap[pos] }}
-                      filter="url(#glow)"
+                      data-perc={goal}
+                      style={{ stroke: goal > positions[pos].perc ? colorMap[pos] : null }}
                       cx="50%" 
                       cy="50%" 
-                    />
+                    /></svg>
                   })
                 }
-              </svg>
-              {
-                Object.keys(positions).map(pos => {
-                  if(pos === 'cash') return null;
-                  let goal = .24; // percent size of account
-                  if(pos === 'mdy') goal = .32;
-                  if(pos === 'other') {
-                    goal = .2;
-                    if(goal > positions[pos].perc) return null;
-                  }
-                  // TODO make more accurate based on prices
-                  return <svg id={'mark-'+pos} key={pos}><circle 
-                    className="mark"
-                    data-index={positions[pos].index}
-                    data-perc={goal}
-                    style={{ stroke: goal > positions[pos].perc ? colorMap[pos] : null }}
-                    cx="50%" 
-                    cy="50%" 
-                  /></svg>
-                })
-              }
+              </div>
             </div>
-            <div className="space" ref="graphspace" />
             <div className="stats-container">
               <div className="keys" ref="keys">
                 {
@@ -343,7 +362,9 @@ export default class Breakdown extends Component {
                   })
                 }
               </div>
-              <div className="details" ref="details"> {renderDetails()} </div>
+              {
+                // <div className="details" ref="details"> {renderDetails()} </div>
+              }
             </div>
           </div>
         </div>

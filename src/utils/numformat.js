@@ -8,27 +8,30 @@ const ranges = [
 ];
 
 const getNumberProperties = num => {
+  const invalid = {}
+  if(typeof num === 'string') num = num.trim();
   // check if empty string or undefined
-  if(num !== 0 && !num) return false; 
+  if(num !== 0 && !num) return invalid;
   // check if it's just a non-digit char
-  if((num+'').length === 1 && isNaN(num)) return false; 
-  let _num = (num + '').replace(',',''), 
+  if((num+'').length === 1 && isNaN(num)) return invalid;
+  let _num = (num + '').replace(/,/g,''),
       suffix = _num[_num.length-1].toUpperCase();
   // split character at end
-  if(suffix.match(/^[A-Z]+$/)) _num = _num.substring(0, _num.length-1); 
+  if(suffix.match(/^[A-Z]+$/)) _num = _num.substring(0, _num.length-1);
   else suffix = null;
   // check if not a number
-  if(isNaN(+_num)) return false; 
+  if(isNaN(+_num)) return invalid;
   // check incorrect suffix
-  if(suffix && !ranges.map(r => r.suffix).includes(suffix)) return false; 
+  if(suffix && !ranges.map(r => r.suffix).includes(suffix)) return invalid;
   // return values - it's a number!
   const multiplier = suffix ? ranges.find(r => r.suffix === suffix).divider : 1;
   // create comma val
   const comma = ((+_num * multiplier) + '').split('.');
-  comma[0] = comma[0].replace(/\B(?=(\d{3})+(?!\d))/g, ','); 
-  return { 
-    string: num, 
-    number: +_num, 
+  comma[0] = comma[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return {
+    valid: true,
+    string: num,
+    number: +_num,
     value: +_num * multiplier,
     comma: comma.join('.'),
     suffix,
@@ -75,6 +78,7 @@ const round = (num, scale) => {
 }
 
 const makeDoubleDecimal = props => {
+  if(!props.valid) return props;
   if(!props.comma.includes('.')) props.comma += '.00';
   if(props.comma.split('.')[1].length < 2) props.comma += '0';
   return props;
