@@ -14,27 +14,28 @@ import {
 
 require('./breakdown.css');
 
-const RADIUS = 4.8, CIRC = 2 * Math.PI * RADIUS;
 const VTS = {
   tactical: {
     tickers: ['mdy','ief','gld'],
-    label: 'VTS Tactical'
+    label: 'VTS Tactical',
+    allocation: .54 // 60% of 90% of total
   },
   aggressive: {
     tickers: ['svxy','vixy'],
-    label: 'VTS Aggressive'
+    label: 'VTS Aggressive',
+    allocation: .18 // 20% of 90% of total
   },
   conservative: {
     tickers: ['ziv','vxz'],
-    label: 'VTS Conservative'
+    label: 'VTS Conservative',
+    allocation: .18 // 20% of 90% of total
   }
 }
 
 export default class Breakdown extends Component {
   state = {
-    display: 'all',
     key: null,
-    holdKey: null,
+    showData: false,
     tradeDetails: {},
   }
   meta = {}
@@ -88,13 +89,14 @@ export default class Breakdown extends Component {
 
         if(data.transactions) {
           const transactions = data.transactions.filter(t => t.symbol === sym);
-          transactions.forEach(trans => {
+          for(let i = 0; i < transactions.length; i++) {
+            const trans = transactions[i];
             if(trans.type === 'buy') {
               if((data.positions[sym] || {}).shares === trans.shares) dets.trades++;
               dets.buys += Math.abs(trans.shares * trans.price) + adj;
             }
             if(trans.type === 'sell') dets.sells += Math.abs(trans.shares * trans.price) + adj;
-          });
+          }
         }
         
         if(day.isSame(props.activeDates[1], 'days')) {
@@ -118,26 +120,18 @@ export default class Breakdown extends Component {
   resizeGraphs = () => {
     const { graphs, body, svg, graphspace, keys, details } = this.refs;
     const { display } = this.state;
+    if(!body || !graphs) return;
 
     // resize graph container
-    const size = Math.min(graphspace.clientWidth, graphspace.clientHeight);
+    const size = this.props.mobile ? Math.min(body.clientWidth, body.clientHeight) : Math.min(graphspace.clientWidth, graphspace.clientHeight);
     graphs.style.width = size + 'px';
     graphs.style.height = size + 'px';
     graphs.setAttribute('data-sized', true);
     graphs.querySelectorAll('svg').forEach(el => el.setAttribute('viewBox', `0 0 ${size} ${size}`))
-    if(details) details.style.maxHeight = (body.clientHeight - 5) + 'px';
-
-    if(body.clientWidth < size + keys.clientWidth) {
-      if(display !== 'no-stats') this.setState({ display: 'no-stats' });
-    } else if(body.clientWidth < body.clientHeight * 2) {
-      if(display !== 'no-details') this.setState({ display: 'no-details' });
-    } else {
-      if(display !== 'all') this.setState({ display: 'all' });
-    }
 
     // set svg viewboxes and items
-    svg.setAttribute('viewBox', `0 0 ${body.clientHeight} ${body.clientHeight}`);
-    const baseRadius = body.clientHeight / 2 - 10; // for stroke and glow spacing
+    svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
+    const baseRadius = size / 2 - 10; // for stroke and glow spacing
     [...svg.querySelectorAll('.color')].forEach(el => {
       const i = el.getAttribute('data-index');
       const r = constrain(baseRadius * (1 - (.15*i)), baseRadius - (18*i), baseRadius - (15*i));
@@ -151,7 +145,7 @@ export default class Breakdown extends Component {
     });
     [...document.querySelectorAll('.mark')].forEach(crc => {
       const el = crc.parentNode;
-      el.setAttribute('viewBox', `0 0 ${body.clientHeight} ${body.clientHeight}`);
+      el.setAttribute('viewBox', `0 0 ${size} ${size}`);
       const circle = el.querySelector('.mark');
       const i = circle.getAttribute('data-index');
       const r = constrain(baseRadius * (1 - (.15*i)), baseRadius - (18*i), baseRadius - (15*i));
@@ -163,19 +157,22 @@ export default class Breakdown extends Component {
   }
 
   render = () => {
-    const { data, activeDates, dataView, mobile } = this.props;
-    const { holdKey, key } = this.state;
+    const { data, activeDates, mobile } = this.props;
+    const { key, showData } = this.state;
     const latest = getLatest(data, activeDates[1]);
 
     const positions = {
       tactical: {
         index: 0,
+        syms: []
       },
       conservative: {
         index: 1,
+        syms: []
       },
       aggressive: {
         index: 2,
+        syms: []
       },
       other: {
         syms: [],
@@ -195,15 +192,16 @@ export default class Breakdown extends Component {
             useOther = !this.getVTS(sym),
             pos = positions[this.getVTS(sym) || 'other'];
       if(useOther) {
-        pos.shares.push(shares)
-        pos.avgs.push(avg);
-        pos.value = (pos.value || 0) + cost;
-        pos.dates.push(since);
+        pos.shares.push(shares); // remove
+        pos.avgs.push(avg); // remove
+        pos.value = (pos.value || 0) + cost; // remove
+        pos.dates.push(since); // remove 
         pos.syms.push(sym);
       } else {
-        pos.shares = shares
-        pos.value = cost;
-        pos.date = since;
+        pos.shares = shares; // remove
+        pos.value = cost; // remove
+        pos.date = since; // remove
+        pos.syms.push(sym);
       }
     })
     const total = Object.keys(positions).map(key => positions[key].value || 0).reduce((t,v) => t+v);
@@ -279,14 +277,58 @@ export default class Breakdown extends Component {
       return html;
     }
 
+    const renderKeys = () => {
+      if(mobile) return null;
+      console.log(positions)
+      return <div className="stats-container main" >
+        <div className="keys" ref="keys">
+          {
+            Object.keys(positions).sort((a,b) => positions[a].index - positions[b].index).map(pos => {
+              const active = positions[pos].perc > 0;
+
+              const renderKey = (text, sub) => {
+                return <div 
+                  className={`key ${active ? 'active' : ''}`} 
+                  key={text}
+                  onClick={e => this.setState({ key: pos === key ? null : pos, showData: true, slide: 1 })}
+                >
+                  <div className="icon">
+                    <div style={{
+                      background: colorMap[pos], 
+                      boxShadow: glow(getColorProperties(colorMap[pos]))
+                    }} />
+                  </div>
+                  <div className="title">
+                    {pos}
+                    <span>{sub}</span>
+                  </div>
+                </div>
+              }
+              return renderKey(pos, active && pos !== 'cash' ? positions[pos].syms.join(', ') : null);
+            })
+          }
+        </div>
+      </div>
+    }
+
+    const renderSlides = () => {
+      return <div className="data">
+        <div className="slides" style={{ transform: `translateX(${-100 * this.state.slide}%)`}}>
+          <div className="slide">test</div>
+          <div className="slide">test2</div>
+        </div>
+      </div>
+    }
+
     return (
       <div className="tile-container" id="breakdown">
-        <div className="tile">
+        <div className={`tile ${showData ? 'show-data' : ''}`}>
           <div className="header">
             <div className="title">Positions</div>
           </div>
-          <div className={`body ${this.state.display}`} ref="body">
-            <div className="space" ref="graphspace">
+          <div className="data-toggle" onClick={e => this.setState({ showData: false })}><span>+</span></div>
+          <div className="body" ref="body">
+            <div className="space main" ref="graphspace" onClick={mobile ? e => this.setState({ showData: true, slide: 0 }) : null}>
               <div className="radial-graphs square" ref="graphs">
                 <svg ref="svg">
                   <defs>
@@ -317,12 +359,10 @@ export default class Breakdown extends Component {
                 {
                   Object.keys(positions).map(pos => {
                     if(pos === 'cash') return null;
-                    let goal = .24; // percent size of account
-                    if(pos === 'tactical') goal = .32;
-                    if(pos === 'other') {
-                      goal = .2;
-                      if(goal > positions[pos].perc) return null;
-                    }
+                    let goal; // percent size of account
+                    if(VTS[pos]) goal = VTS[pos].allocation;
+                    else goal = 1 - Object.keys(VTS).reduce((t,v) => t + VTS[v].allocation, 0);
+
                     // TODO make more accurate based on prices
                     return <svg id={'mark-'+pos} key={pos}><circle 
                       className="mark"
@@ -336,36 +376,10 @@ export default class Breakdown extends Component {
                 }
               </div>
             </div>
-            <div className="stats-container">
-              <div className="keys" ref="keys">
-                {
-                  Object.keys(positions).sort((a,b) => positions[a].index - positions[b].index).map(pos => {
-                    const active = positions[pos].perc > 0;
-                    return <div 
-                      className={`key ${active ? 'active' : ''} ${holdKey === pos ? 'expanded' : ''}`} 
-                      key={pos}
-                      onClick={e => this.setState({ holdKey: pos === holdKey ? null : pos })}
-                      onMouseEnter={e => this.setState({ key: pos })}
-                      onMouseLeave={e => this.setState({ key: holdKey })}
-                    >
-                      <div className="icon">
-                        <div style={{
-                          background: colorMap[pos], 
-                          boxShadow: glow(getColorProperties(colorMap[pos]))
-                        }} />
-                      </div>
-                      <div className="title">
-                        {pos}
-                        {pos !== 'other' ? null : <span>{positions[pos].syms.length}</span>}
-                      </div>
-                    </div>
-                  })
-                }
-              </div>
-              {
-                // <div className="details" ref="details"> {renderDetails()} </div>
-              }
-            </div>
+            
+            { renderKeys() }
+
+            { renderSlides() }
           </div>
         </div>
       </div>

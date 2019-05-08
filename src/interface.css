@@ -84,6 +84,7 @@
   align-items: center;
   pointer-events: none;
   opacity: 0;
+  z-index: 20;
   transform: translate3d(0,100%,0);
 }
 .tile .data > div {
@@ -110,7 +111,11 @@
   height: 2em;
   width: 2em;
   cursor: pointer;
-  transition: transform .1s;
+  transition: transform .1s, opacity .2s;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .tile .data-toggle:hover {
   transform: scale(1.2);

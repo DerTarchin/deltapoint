@@ -4,6 +4,8 @@
   justify-content: center;
   position: relative;
   font-weight: 100;
+  flex-shrink: 1;
+  backface-visibility: hidden;
 }
 
 #breakdown .square {
@@ -35,11 +37,13 @@
   stroke: #445db1;
   stroke-width: 1px;
   stroke-dasharray: 5;
+  transition: none;
 }
 #breakdown circle.mark {
   stroke: #445db1;
   stroke-width: 3.5px;
   z-index: 1;
+  transition: none;
 }
 
 #breakdown .space {
@@ -52,46 +56,31 @@
 }
 #breakdown .stats-container {
   flex-grow: 1;
-  flex-shrink: 0;
+  flex-shrink: 1;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  height: 100%;
+  overflow: auto;
 }
 #breakdown .keys {
   display: flex;
   flex-direction: column;
-  flex-wrap: wrap;
-  justify-content: space-around;
-  user-select: none;
-}
-#breakdown .no-stats {
-  justify-content: center;
-}
-#breakdown .no-stats .stats-container {
-  visibility: hidden;
-  position: absolute;
-  z-index: -1;
-}
-#breakdown .all .stats-container {
-  padding-left: 3vh;
+  margin: auto;
 }
 #breakdown .key {
+  user-select: none;
   position: relative;
   padding: 1vh 0;
   display: flex;
   opacity: .2;
   flex-shrink: 1;
   flex-grow: 0;
-  pointer-events: none;
-  transition: opacity .2s;
+  cursor: pointer;
+  transition: opacity .2s, transform .1s;
 }
 #breakdown .key.active {
   opacity: 1;
-  cursor: pointer;
-}
-#breakdown .all .key {
-/*#breakdown .all .key.active {*/
-  pointer-events: all;
 }
 #breakdown .key .icon {
   margin-right: 7px;
@@ -104,66 +93,51 @@
   border-radius: 50%;
 }
 #breakdown .key .title {
-  text-transform: uppercase;
+  text-transform: capitalize;
   line-height: 1em;
-  transition: transform .07s;
 }
-#breakdown .key:hover .title,
-#breakdown .key.expanded .title {
-  transform: translateX(3px);
+#breakdown .key:hover {
+  transform: scale(1.1);
 }
 #breakdown .key .title span {
   margin-left: 8px; 
   opacity: .5;
-}
-#breakdown .no-details .details {
-  display: none;
-}
-#breakdown .details {
-  flex-grow: 1;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  padding-left: 3vh;
-  overflow: auto;
-}
-#breakdown .group {
-  padding: 15px 5px;
-  background: rgba(255,255,255,.03);
-  border-radius: 10px;
-  margin-bottom: 20px;
-}
-#breakdown .details > :last-child {
-  margin-bottom: 0;
-}
-#breakdown .row,
-#breakdown .single {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-bottom: 5px;
-}
-#breakdown .row > div:nth-of-type(1) {
-  text-align: right;
-}
-#breakdown .row > div:nth-of-type(2) {
-  text-align: center;
-}
-#breakdown .col {
-  width: 33%;
-  flex-grow: 0;
-  flex-shrink: 0;
-}
-#breakdown .label {
-  text-transform: uppercase;
+  font-weight: 500;
   font-size: .8em;
+  text-transform: uppercase;
+}
+
+#breakdown .data-toggle {
+  margin-right: 5px;
+}
+#breakdown .tile:not(.show-data) .data-toggle {
+  opacity: 0;
+  pointer-events: none;
+}
+#breakdown .data-toggle span {
+  font-size: 2em;
+  display: block;
+  transform: rotate(45deg);
   color: hsla(220, 39%, 65%, .8);
 }
-#breakdown .details .strat {
-  font-weight: 500;
+#breakdown .data-toggle:hover span {
+  color: white;
 }
-#breakdown .details .date {
-  margin-top: 15px;
-  font-weight: 600;
-  font-size: .9em;
+#breakdown .data {
+  overflow: hidden;
+}
+#breakdown .slides {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  transform: translateX(-100%);
+  transition: transform .35s;
+}
+.mobile #breakdown .slides {
+  transform: translateX(0);
+}
+#breakdown .slide {
+  width: 100%;
+  flex-grow: 0;
+  flex-shrink: 0;
 }

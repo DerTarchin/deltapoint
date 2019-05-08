@@ -64,8 +64,8 @@ export default class Balances extends Component {
           if(anim.pl_from_history !== anim.pl_from) {
             if(perc) {
               let num = round(anim.pl_from, 2);
-              if(latest.adj.plPerc >= 100) num = round(num, 0);
-              if(latest.adj.plPerc >= 10) num = round(num, 1);
+              if(Math.abs(latest.adj.plPerc) >= 1) num = round(num, 1);
+              if(Math.abs(latest.adj.plPerc) >= 10) num = round(num, 0);
               pl.querySelector('[data-val]').innerHTML = num;
             } else {
               const num = getNumberProperties(round(anim.pl_from, 2));
@@ -83,9 +83,12 @@ export default class Balances extends Component {
   }
 
   getMaxContributions = date => {
+    const list = this.props.data.meta.max_contribution;
     let pair, year = date.year();
     while(!pair) {
-      pair = this.props.data.meta.max_contribution.find(mc => mc[0] === year)
+      for(let i = 0; i < list.length; i++) {
+        if(list[i][0] === year) pair = list[i];
+      }
       year--;
     }
     return pair[1];
@@ -105,8 +108,8 @@ export default class Balances extends Component {
           total = getNumberProperties(round(latest.adj.total_contributions, 2)),
           pl = getNumberProperties(round(latest.adj.pl, 2)),
           plPerc = round(latest.adj.plPerc, 
-                         latest.adj.plPerc <= 10 ? 2 :
-                         latest.adj.plPerc <= 100 ? 1 : 0),
+                         Math.abs(latest.adj.plPerc) < 1 ? 2 :
+                         Math.abs(latest.adj.plPerc) < 10 ? 1 : 0),
           plRange = 100 * Math.abs(pl.value) / (pl.value + total.value);
     [balance,pl].map(v => makeDoubleDecimal(v));
     let commIndex = data.meta.commission.length - 1,
@@ -200,7 +203,7 @@ export default class Balances extends Component {
                       { perc ? <span className="dsign">$</span> : null }
                       { perc ? pl.comma.replace(mobile ? '' : '-','') : Math.abs(plPerc) }
                       { perc ? null : <span className="psign">%</span> }
-                      { perc ? ' ' : null }{ mobile && perc ? null : plPerc > 0 ? 'profit' : 'loss' }
+                      { perc ? ' ' : null }{ mobile && perc ? null : plPerc >= 0 ? 'profit' : 'loss' }
                     </span>
                     <span><span className="dsign">$</span>{total.comma}</span>
                   </div>

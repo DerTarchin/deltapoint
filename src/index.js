@@ -6,9 +6,7 @@ import InterfaceMobile from './InterfaceMobile'
 import { decrypt, debounce } from './utils';
 import anime from 'animejs';
 import moment from 'moment';
-import {
-  rotatephone,
-} from './utils/icons';
+import { rotatephone } from './utils/icons';
 
 require('./app.css');
 
@@ -78,7 +76,7 @@ class App extends Component {
       if(error || !body) alert(error);
       this.meta.encryptedMsg = JSON.parse(body).encryptedMsg;
       // dev
-      setTimeout(() => this.unlock('ord-mantell'), 500);
+      setTimeout(() => this.unlock('dpdev'), 500);
     });
 
     // ===
