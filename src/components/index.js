@@ -1,5 +1,4 @@
 import ContentEditable from './ContentEditable';
-import DurationTrail from './DurationTrail';
 import Portfolio from './Portfolio';
 import Balances from './Balances';
 import Volatility from './Volatility';
@@ -8,7 +7,6 @@ import Charts from './Charts';
 
 export {
   ContentEditable,
-  DurationTrail,
   Portfolio,
   Balances,
   Volatility,
