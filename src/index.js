@@ -3,12 +3,12 @@ import ReactDOM from 'react-dom';
 import { ContentEditable } from './components';
 import Interface from './Interface'
 import InterfaceMobile from './InterfaceMobile'
-import { decrypt, debounce } from './utils';
+import { decrypt } from './utils';
 import anime from 'animejs';
 import moment from 'moment';
 import { rotatephone } from './utils/icons';
 
-require('./app.css');
+require('./App.css');
 
 const MOBILE_DEV = false;
 
@@ -209,29 +209,27 @@ class App extends Component {
     }
   }
 
-  onDateChange = (type, val) => {
-    // debounce(() => {
-      const isOpt = type === 'opt';
-      let activeDateOpt = isOpt ? val : -1,
-          activeDates = isOpt ? [DATE_OPTS[val].start, DATE_OPTS[val].end] : val;
-      // check if date is valid
-      while(!this.meta.acctData[activeDates[0].format('L')]) activeDates[0].add(1, 'days');
-      while(!this.meta.acctData[activeDates[1].format('L')]) activeDates[1].subtract(1, 'days');
-      // check if dates are same as opt
-      if(!isOpt) {
-        DATE_OPTS.forEach((d,i) => {
-          if(activeDateOpt > -1) return;
-          if(d.start.isSame(activeDates[0], 'days') && d.end.isSame(activeDates[1], 'days')) activeDateOpt = i;
-        })
-      }
-      const activeData = this.trimData(activeDates);
+  onDateChange = (type, val, callback) => {
+    const isOpt = type === 'opt';
+    let activeDateOpt = isOpt ? val : -1,
+        activeDates = isOpt ? [DATE_OPTS[val].start, DATE_OPTS[val].end] : val;
+    // check if date is valid
+    while(!this.meta.acctData[activeDates[0].format('L')]) activeDates[0].add(1, 'days');
+    while(!this.meta.acctData[activeDates[1].format('L')]) activeDates[1].subtract(1, 'days');
+    // check if dates are same as opt
+    if(!isOpt) {
+      DATE_OPTS.forEach((d,i) => {
+        if(activeDateOpt > -1) return;
+        if(d.start.isSame(activeDates[0], 'days') && d.end.isSame(activeDates[1], 'days')) activeDateOpt = i;
+      })
+    }
+    const activeData = this.trimData(activeDates);
 
-      this.setState({ 
-        activeDateOpt,
-        activeDates,
-        activeData
-      });
-    // }, 20);
+    this.setState({ 
+      activeDateOpt,
+      activeDates,
+      activeData
+    }, callback);
   }
 
   onSettingsChange = (key, val) => {

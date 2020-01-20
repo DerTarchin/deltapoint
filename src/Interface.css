@@ -292,61 +292,10 @@ ul.app-opts { margin-left: -12px }
   background: rgba(255,255,255,.15)
 }
 #header-cal {
-  justify-content: center;
   padding-left: 2.2em; /* same width as menu icon */
 }
 
-.scrubber {
-  width: 70%;
-  display: flex;
-  position: absolute;
-  padding: 0 2em;
-}
-.scrubber canvas {
-  height: 3.5em;
-  width: 100%;
-  padding: 1em 0;
-}
-.scrubber .arrow svg {
-  width: 1em;
-  height: 1em;
-  fill: white;
-}
-.scrubber .arrow { 
-  margin-top: 1px;
-  position: absolute; 
-  opacity: .5;
-  height: 100%;
-  display: flex;
-  align-items: center;
-}
-.scrubber .backwards { left: 0 }
-.scrubber .backwards svg { transform: rotate(-90deg) }
-.scrubber .forwards { right: 0 }
-.scrubber .forwards svg { transform: rotate(90deg) }
-.scrubber .arrow:hover { opacity: 1 }
-.scrubber .arrow span { margin-top: .2em }
-.scrubber .from, .scrubber .to {
-  opacity: .3;
-  position: absolute;
-  top: 0;
-}
-.scrubber .to { right: 2em }
-.scrubber .dates {
-  opacity: .3;
-  top: 0;
-  left: 0;
-  width: 100%;
-  text-align: center;
-  position: absolute;
-  font-size: 1em;
-}
-#header-cal:hover .dates {
-  opacity: 1;
-}
-.scrubber .dates.dragging > :not(.drag) {
-  display: none;
-}
+
 
 
 .mobile .interface { 

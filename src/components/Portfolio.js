@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-// require('./interface.css');
+// require('./Interface.css');
 
 export default class Portfolio extends Component {
   state = {};

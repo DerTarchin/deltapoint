@@ -6,26 +6,21 @@ import {
   Balances, 
   Volatility, 
   Breakdown, 
-  Charts 
+  Charts,
+  DateScrubber
 } from './components';
 import {
-  pagePos,
   frmt,
   sepFrmt,
-  debounce
 } from './utils'
 import {
-  threedot,
-  doublearrow
+  threedot
 } from './utils/icons';
 
-require('./interface.css');
+require('./Interface.css');
 
 const TILE_INTRO_DURATION = 1000;
 const TILE_INTRO_DELAY = 100;
-const SCRUBBER_TICK = 2;
-const SCRUBBER_RANGE = 90;
-const WEEKDAY = date => date.day() && date.day() < 6;
 
 export default class Interface extends Component {
   state = {
@@ -41,7 +36,6 @@ export default class Interface extends Component {
 
   componentDidMount = () => {
     const isSmall = window.innerWidth <= 767;
-    this.drawScrubber();
     this.meta.tileAnime = anime.timeline().add({
       targets: isSmall ?
       [
@@ -137,13 +131,6 @@ export default class Interface extends Component {
     window.removeEventListener('keydown', this.handleKey);
   }
 
-  handleResize = e => {
-    this.meta.canvas = null;
-    setTimeout(() => {
-      if(!this.meta.canvas) this.drawScrubber();
-    }, 50)
-  }
-
   handleKey = e => {
     const { onSettingsChange, onDateChange } = this.props;
     switch(e.code) {
@@ -195,178 +182,28 @@ export default class Interface extends Component {
       this.meta.weekdays = null;
       newState.scrubberEnd = this.meta.activeScrubberEnd || this.props.lastDay;
     }
-    this.setState(newState, newState.headerIndex === 1 ? this.drawScrubber : null);
+    this.setState(newState);
   }
 
-  drawScrubber = () => {
-    if(this.state.headerIndex !== 1) return;
-    const { canvas } = this.refs, rect = canvas.getBoundingClientRect();
-    // init canvas if initial render 
-    const setupCanvas = () => {
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      this.meta.canvas = canvas.getContext('2d');
-      this.meta.canvas.scale(dpr, dpr);
-      return this.meta.canvas;
-    }
-    const setupTicks = () => {
-      const weekdays = [];
-      const time = this.state.scrubberEnd.clone();
-      while(weekdays.length < SCRUBBER_RANGE && time.isSameOrAfter(moment(this.props.data.meta.start_date, 'L'), 'days')) {
-        if(WEEKDAY(time)) weekdays.unshift(time.format('L'));
-        time.subtract(1, 'days');
-      }
-      this.meta.weekdays = weekdays;
-      this.forceUpdate();
-      return weekdays;
-    }
+  renderDates = () => {
+    const { activeDates } = this.props;
 
-    // if weekdays have not been initialized or year changed
-    const weekdays = this.meta.weekdays || setupTicks();
-    // draw calendar
-    const ctx = this.meta.canvas || setupCanvas();
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    const distance = this.calcTickDistance();
-    const offset = SCRUBBER_TICK; // first one gets drawn in half
-    // ctx.globalAlpha = 0.2;
-    weekdays.forEach((day, i) => {
-      ctx.lineWidth = SCRUBBER_TICK;
-      ctx.beginPath();
-
-      const dates = this.meta.propActiveDates || this.props.activeDates;
-      if( i === this.meta.canvasHighlight ||
-         [dates[0].format('L'), dates[1].format('L')].includes(day)
-      ) {
-        ctx.strokeStyle = '#fff'
-        ctx.moveTo(distance * i + offset, rect.height * .25);
-        ctx.lineTo(distance * i + offset, rect.height);
-      } else if(moment(day, 'L').isBetween(dates[0], dates[1])) {
-        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-        ctx.moveTo(distance * i + offset, rect.height * .25);
-        ctx.lineTo(distance * i + offset, rect.height * .75);
-      } else {
-        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-        ctx.moveTo(distance * i + offset, rect.height * .25);
-        ctx.lineTo(distance * i + offset, rect.height * .75);
-      }
-      ctx.stroke();
-    })
-  }
-
-  calcTickDistance = () => {
-    const days = this.meta.weekdays.length;
-    const { canvas } = this.refs, rect = canvas.getBoundingClientRect();
-    let distance = rect.width / days;
-    // recalc width to get rid of empty space at back
-    const calcWidth = rect.width + distance - (SCRUBBER_TICK * 2);
-
-    return calcWidth / days;
-  }
-
-  scrub = e => {
-    // calc hover highlight
-    const { canvas } = this.refs;
-    let callback, delay = 150;
-    const datesEl = this.refs.header.querySelector('.scrubber .dates');
-    let spanEl = datesEl.querySelector('span.drag');
-    if(e.target === canvas) {
-      const distance = this.calcTickDistance(), offset = SCRUBBER_TICK * .5,
-            canvasPos = pagePos(canvas);
-      canvasPos.y = canvasPos.y - document.getElementById('header-cal').clientHeight;
-      const highlight = Math.min(
-        Math.floor((e.pageX - canvasPos.x + offset) / distance), 
-        this.meta.weekdays.length-1
-      );
-
-      const day = moment(this.meta.weekdays[highlight], 'L');
-      if(!spanEl) {
-        spanEl = document.createElement('span');
-        spanEl.classList.add('drag');
-        datesEl.append(spanEl);
-        datesEl.classList.add('dragging');
-      }
-      spanEl.innerHTML = frmt(day, moment())[0];
-
-      if(this.meta.canvasHighlight === highlight) return;
-      if(!this.meta.propActiveDates) {
-        this.meta.propActiveDates = this.props.activeDates;
-        this.meta.propActiveDateOpt = this.props.activeDateOpt;
-      }
-      callback = () => this.props.onDateChange('range', [day, day]);
-
-      this.meta.canvasHighlight = highlight;
-      this.drawScrubber();
-    }
-    else if(this.meta.canvasHighlight > -1) {
-      if(spanEl) datesEl.removeChild(spanEl);
-      datesEl.classList.remove('dragging');
-      this.meta.canvasHighlight = -1;
-      this.drawScrubber();
-      const { propActiveDateOpt, propActiveDates } = this.meta;
-      if(propActiveDateOpt > -1) {
-        callback = () => this.props.onDateChange('opt', propActiveDateOpt);
-      } else {
-        callback = () => this.props.onDateChange('range', propActiveDates);
-      }
-      delay = 0;
-      this.meta.propActiveDateOpt = -1;
-      this.meta.propActiveDates = null;
-    }
-
-    if(callback) debounce(callback, delay, 'date-scrubber');
-  }
-
-  scrubSelect = e => {
-    const selectedDate = moment(this.meta.weekdays[this.meta.canvasHighlight], 'L');
-    const dates = this.meta.propActiveDates;
-    if(dates[0] === dates[1] && selectedDate.format('L') === dates[0].format('L')) return;
-    if(dates[0] === dates[1]) {
-      // put the earlier date first
-      if(dates[0].isBefore(selectedDate)) {
-        this.meta.propActiveDates = [dates[0], selectedDate];
-        this.meta.activeScrubberEnd = this.state.scrubberEnd;
-      }
-      else this.meta.propActiveDates = [selectedDate, dates[0]];
-    }
-    else {
-      this.meta.propActiveDates = [selectedDate, selectedDate];
-      this.meta.activeScrubberEnd = this.state.scrubberEnd;
-    }
-    this.meta.propActiveDateOpt = -1;
-    this.props.onDateChange('range', this.meta.propActiveDates);
-    this.drawScrubber();
-  }
-
-  scrubAdjust = e => {
-    this.meta.weekdays = null;
-    let end = moment(this.state.scrubberEnd.format('L'), 'L'); // trims time
-    const mod = e.currentTarget === this.refs.scrubBackwards ? -1 : 1;
-    let diff = 0;
-    // shift by RANGE or (if upward) until last day
-    while(diff < SCRUBBER_RANGE-1 && end[mod < 0 ? 'isSameOrBefore' : 'isBefore'](this.props.lastDay, 'days')) {
-      if(WEEKDAY(end)) diff++;
-      end.add(mod, 'days');
-    }
-    // if backwards and before start_date, shift back up to fit RANGE
-    if(mod < 0) {
-      let ticks = 0;
-      const start = end.clone();
-      while(ticks < SCRUBBER_RANGE && start.isSameOrAfter(moment(this.props.data.meta.start_date, 'L'), 'days')) {
-        if(WEEKDAY(start)) ticks++;
-        start.subtract(1, 'days');
-      }
-      if(ticks < SCRUBBER_RANGE) { // start date was hit
-        diff = 0;
-        end = moment(this.props.data.meta.start_date, 'L');
-        // shift by RANGE or (if upward) until last day
-        while(diff < SCRUBBER_RANGE-1 && end.isSameOrBefore(this.props.lastDay, 'days')) {
-          if(WEEKDAY(end)) diff++;
-          end.add(1, 'days');
-        }
-      }
-    }
-    this.setState({ scrubberEnd: end }, this.drawScrubber)
+    const fmt = sepFrmt(activeDates[0], activeDates[1]);
+    if(activeDates[0] === activeDates[1]) return (
+      <div className="dates" ref="dates">
+        <span className="rest">{fmt[0].m} {fmt[0].d}</span> 
+        {fmt[0].useYear ? <span className="year">, {fmt[0].y}</span> : null}
+      </div>
+    );
+    return (
+      <div className="dates" ref="dates">
+        <span className="rest">{fmt[0].m} {fmt[0].d}</span> 
+        {fmt[0].useYear ? <span className="year">, {fmt[0].y}</span> : null}
+        <span>{` - `}</span>
+        <span className="rest">{fmt[1].m} {fmt[1].d}</span> 
+        {fmt[1].useYear ? <span className="year">, {fmt[1].y}</span> : null}
+      </div>
+    )
   }
 
   render = () => {
@@ -384,27 +221,6 @@ export default class Interface extends Component {
       onSettingsChange,
       onDateChange
     } = this.props;
-
-    const renderDates = useRef => {
-      const fmt = sepFrmt(activeDates[0], activeDates[1]);
-      const props = {};
-      if(useRef) props.ref = 'dates';
-      if(activeDates[0] === activeDates[1]) return (
-        <div className="dates" {...props}>
-          <span className="rest">{fmt[0].m} {fmt[0].d}</span> 
-          {fmt[0].useYear ? <span className="year">, {fmt[0].y}</span> : null}
-        </div>
-      );
-      return (
-        <div className="dates" {...props}>
-          <span className="rest">{fmt[0].m} {fmt[0].d}</span> 
-          {fmt[0].useYear ? <span className="year">, {fmt[0].y}</span> : null}
-          <span>{` - `}</span>
-          <span className="rest">{fmt[1].m} {fmt[1].d}</span> 
-          {fmt[1].useYear ? <span className="year">, {fmt[1].y}</span> : null}
-        </div>
-      )
-    }
 
     return (
       <div className="interface">
@@ -443,7 +259,7 @@ export default class Interface extends Component {
                 </ul>
               </div>
 
-              {renderDates(true)}
+              { this.renderDates() }
 
               <div className="header-right">
                 <ul ref="dateOpts" className="date-opts">
@@ -465,31 +281,8 @@ export default class Interface extends Component {
                 </ul>
               </div>
             </section>
-            <section id="header-cal" onMouseMove={this.scrub}>
-              <div className="scrubber" ref="scrubber">
-                {renderDates()}
-                <canvas ref="canvas" onClick={this.scrubSelect} />
-                <div 
-                  className={`arrow backwards ${weekdays && weekdays[0] === this.props.data.meta.start_date ? 'disabled' : ''}`} 
-                  ref="scrubBackwards" 
-                  onClick={this.scrubAdjust}
-                >
-                  <span className="clickitem">{doublearrow}</span>
-                </div>
-                <div 
-                  className={`arrow forwards ${weekdays && weekdays[weekdays.length-1] === this.props.lastDay.format('L') ? 'disabled' : ''}`} 
-                  ref="scrubForwards" 
-                  onClick={this.scrubAdjust}
-                >
-                  <span className="clickitem">{doublearrow}</span>
-                </div>
-                {
-                  !weekdays ? null : [
-                    <div key="from" className="from">{frmt(moment(weekdays[0], 'L'), moment(weekdays[weekdays.length-1], 'L'))[0]}</div>,
-                    <div key="to" className="to">{frmt(moment(weekdays[0], 'L'), moment(weekdays[weekdays.length-1], 'L'))[1]}</div>
-                  ]
-                }
-              </div>
+            <section id="header-cal">
+              <DateScrubber {...this.props} headerIndex={headerIndex} />
             </section>
           </div>
           <div
@@ -498,7 +291,7 @@ export default class Interface extends Component {
           ><div className="clickitem">{threedot}</div></div>
         </div>
 
-        <div className="interface-content" onMouseEnter={this.scrub}>
+        <div className="interface-content">
           <section className="tile-col left">
             {
               <Portfolio {...this.props} />

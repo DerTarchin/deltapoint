@@ -1,4 +1,5 @@
 import ContentEditable from './ContentEditable';
+import DateScrubber from './DateScrubber';
 import Portfolio from './Portfolio';
 import Balances from './Balances';
 import Volatility from './Volatility';
@@ -7,6 +8,7 @@ import Charts from './Charts';
 
 export {
   ContentEditable,
+  DateScrubber,
   Portfolio,
   Balances,
   Volatility,

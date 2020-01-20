@@ -12,7 +12,7 @@ import {
   getLatest,
 } from '../utils';
 
-require('./breakdown.css');
+require('./Breakdown.css');
 
 const VTS = {
   tactical: {

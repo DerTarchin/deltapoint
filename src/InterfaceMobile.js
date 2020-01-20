@@ -19,7 +19,7 @@ import {
   angle,
 } from './utils/icons';
 
-require('./interface.css');
+require('./Interface.css');
 
 const TILE_INTRO_DURATION = 500;
 const TILE_INTRO_DELAY = 200;

@@ -14,7 +14,7 @@ import {
   threedot,
 } from '../utils/icons';
 
-require('./balances.css');
+require('./Balances.css');
 
 export default class Balances extends Component {
   state = {};

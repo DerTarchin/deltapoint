@@ -1,0 +1,62 @@
+#header-cal:hover .dates {
+  opacity: 1;
+}
+
+.scrubber-container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.scrubber {
+  width: 70%;
+  display: flex;
+  position: absolute;
+  padding: 0 2em;
+  margin-top: 8px;
+}
+.scrubber canvas {
+  height: 4.5em;
+  width: 100%;
+  padding: 1.5em 0;
+}
+.scrubber .arrow svg {
+  width: 1em;
+  height: 1em;
+  fill: white;
+}
+.scrubber .arrow { 
+  margin-top: 1px;
+  position: absolute; 
+  opacity: .5;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+.scrubber .backwards { left: 0 }
+.scrubber .backwards svg { transform: rotate(-90deg) }
+.scrubber .forwards { right: 0 }
+.scrubber .forwards svg { transform: rotate(90deg) }
+.scrubber .arrow:hover { opacity: 1 }
+.scrubber .arrow span { margin-top: .2em }
+.scrubber .from, .scrubber .to {
+  opacity: .3;
+  position: absolute;
+  top: 5px;
+}
+.scrubber .to { right: 2em }
+.scrubber .dates {
+  opacity: .3;
+  top: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  position: absolute;
+  font-size: 1em;
+}
+
+.scrubber .dates.dragging > :not(.drag) {
+  display: none;
+}
