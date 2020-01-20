@@ -118,7 +118,6 @@ export default class Balances extends Component {
       commIndex--;
       currComm = data.meta.commission[commIndex];
     }
-    console.log('LATEST', latest)
 
     const calcAge = () => {
       const start = moment(data.meta.start_date, 'L');
@@ -128,7 +127,10 @@ export default class Balances extends Component {
       if(days <= 31) return `${days} day${days !== 1 ? 's' : ''}`;
       if(months <= 12) return `${months} month${months !== 1 ? 's' : ''}`;
       let text = `${years} year${years !== 1 ? 's' : ''}`;
-      if(years < 5 && months % 12 > 0) text += `, ${months % 12} month${months % 12 !== 1 ? 's' : ''}`;
+      if(years < 5 && months % 12 > 0) {
+        text.replace('years','yr').replace('year','yr');
+        text += `, ${months % 12} mo`;
+      }
       return text;
     }
 
@@ -212,42 +214,44 @@ export default class Balances extends Component {
               </div>
             </div>
             <div className="data">
-              <div>
 
-                <div className="data-row label-row">
-                  <div className="label thin">Balance</div>
-                  <div className="label">YTD {mobile ? 'Funding' : 'Contributions'}</div>
-                  <div className="label">Total Fees</div>
-                </div>
-                <div className="data-row value-row">
-                  <div className="thin">${balance.comma}</div>
-                  <div>${ytd.comma}</div>
-                  <div>${makeDoubleDecimal(getNumberProperties(round(latest.total_fees, 2))).comma}</div>
-                </div>
+              <table>
+                <tbody>
+                  <tr className="label-row">
+                    <td>Balance</td>
+                    <td>YTD {mobile ? 'Contrib.' : 'Contributions'}</td>
+                    <td>Total Fees</td>
+                  </tr>
+                  <tr className="data-row">
+                    <td>${balance.comma}</td>
+                    <td>${ytd.comma}</td>
+                    <td>${makeDoubleDecimal(getNumberProperties(round(latest.total_fees, 2))).comma}</td>
+                  </tr>
 
-                <div className="data-row label-row">
-                  <div className="label thin">P/L Open</div>
-                  <div className="label">Total {mobile ? 'Funding' : 'Contributions'}</div>
-                  <div className="label">Commission {mobile ? null : 'Rate'}</div>
-                </div>
-                <div className="data-row value-row">
-                  <div className="thin">${pl.comma}</div>
-                  <div>${total.comma}</div>
-                  <div>${currComm[1]}</div>
-                </div>
+                  <tr className="label-row">
+                    <td>P/L Open</td>
+                    <td>Total {mobile ? 'Contrib.' : 'Contributions'}</td>
+                    <td>Commission {mobile ? null : 'Rate'}</td>
+                  </tr>
+                  <tr className="data-row">
+                    <td>${pl.comma}</td>
+                    <td>${total.comma}</td>
+                    <td>${currComm[1]}</td>
+                  </tr>
 
-                <div className="data-row label-row">
-                  <div className="label thin">P/L Open %</div>
-                  <div className="label">Max {mobile ? 'Funding' : 'Contributions'}</div>
-                  <div className="label">Account Age</div>
-                </div>
-                <div className="data-row value-row">
-                  <div className="thin">{plPerc}%</div>
-                  <div>${max.comma}</div>
-                  <div>{calcAge()}</div>
-                </div>
+                  <tr className="label-row">
+                    <td>P/L Open %</td>
+                    <td>Max {mobile ? 'Contrib.' : 'Contributions'}</td>
+                    <td>Account Age</td>
+                  </tr>
+                  <tr className="data-row">
+                    <td>{plPerc}%</td>
+                    <td>${max.comma}</td>
+                    <td>{calcAge()}</td>
+                  </tr>
+                </tbody>
+              </table>
 
-              </div>
             </div>
           </div>
         </div>

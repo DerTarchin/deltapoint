@@ -1,9 +1,18 @@
-// my personal debounce
-let id;
-export const debounce = (callback, wait) => {
-  id = performance.now();
-  const id_check = id;
+// DEBOUNCE
+const keys = {}
+export const debounce = (callback, wait, id) => {
+  const key = id || callback;
+  keys[key] = {
+    callback,
+    time: performance.now()
+  };
+
+  const valid_timeout = keys[key].time;
   setTimeout(() => {
-    if(id_check === id) callback();
+    if(keys[key] && valid_timeout === keys[key].time) {
+      const call = keys[key].callback;
+      delete keys[key];
+      call();
+    }
   }, wait);
 }

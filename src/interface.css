@@ -344,6 +344,9 @@ ul.app-opts { margin-left: -12px }
 #header-cal:hover .dates {
   opacity: 1;
 }
+.scrubber .dates.dragging > :not(.drag) {
+  display: none;
+}
 
 
 .mobile .interface { 
@@ -359,6 +362,7 @@ ul.app-opts { margin-left: -12px }
 .mobile .interface-header .dates {
   position: relative;
   padding: 0;
+  font-size: 1.1em;
 }
 .mobile .interface-header .dates span {
   opacity: .8;

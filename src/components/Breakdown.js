@@ -279,7 +279,7 @@ export default class Breakdown extends Component {
 
     const renderKeys = () => {
       if(mobile) return null;
-      console.log(positions)
+      // console.log(positions)
       return <div className="stats-container main" >
         <div className="keys" ref="keys">
           {

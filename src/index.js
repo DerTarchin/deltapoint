@@ -106,7 +106,7 @@ class App extends Component {
       this.setState({ unlockError: 'Incorrect passphrase.'})
       return;
     }
-    console.log(data, data.dertarchinroth)
+    // console.log(data, data.dertarchinroth)
 
     // parse data
     const accounts = Object.keys(data),

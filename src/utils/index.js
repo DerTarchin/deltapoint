@@ -64,7 +64,7 @@ const sepFrmt = (start, end) => {
       m: start.format('MMM'),
       M: start.format('MMMM'),
       d: start.format('D'),
-      useYear: start.year() !== end.year() || end.year() !== year
+      useYear: start.year() !== end.year()
     }, {
       y: end.year(),
       m: end.format('MMM'),

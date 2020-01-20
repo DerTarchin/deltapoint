@@ -12,6 +12,7 @@ import {
   pagePos,
   frmt,
   sepFrmt,
+  debounce
 } from './utils'
 import {
   threedot,
@@ -30,7 +31,6 @@ export default class Interface extends Component {
   state = {
     headerIndex: 0,
     scrubberEnd: this.props.lastDay,
-    highlightDate: null,
   }
   meta = {}
 
@@ -267,6 +267,9 @@ export default class Interface extends Component {
   scrub = e => {
     // calc hover highlight
     const { canvas } = this.refs;
+    let callback, delay = 150;
+    const datesEl = this.refs.header.querySelector('.scrubber .dates');
+    let spanEl = datesEl.querySelector('span.drag');
     if(e.target === canvas) {
       const distance = this.calcTickDistance(), offset = SCRUBBER_TICK * .5,
             canvasPos = pagePos(canvas);
@@ -275,28 +278,43 @@ export default class Interface extends Component {
         Math.floor((e.pageX - canvasPos.x + offset) / distance), 
         this.meta.weekdays.length-1
       );
-      if(this.meta.canvasHighlight === highlight) return;
+
       const day = moment(this.meta.weekdays[highlight], 'L');
+      if(!spanEl) {
+        spanEl = document.createElement('span');
+        spanEl.classList.add('drag');
+        datesEl.append(spanEl);
+        datesEl.classList.add('dragging');
+      }
+      spanEl.innerHTML = frmt(day, moment())[0];
+
+      if(this.meta.canvasHighlight === highlight) return;
       if(!this.meta.propActiveDates) {
         this.meta.propActiveDates = this.props.activeDates;
         this.meta.propActiveDateOpt = this.props.activeDateOpt;
       }
-      this.props.onDateChange('range', [day, day]);
-      this.setState({ 
-        highlightDate: frmt(day, moment())[0],
-      });
+      callback = () => this.props.onDateChange('range', [day, day]);
+
       this.meta.canvasHighlight = highlight;
       this.drawScrubber();
     }
     else if(this.meta.canvasHighlight > -1) {
-      this.setState({ highlightDate: null });
-      if(this.meta.propActiveDateOpt > -1) this.props.onDateChange('opt', this.meta.propActiveDateOpt);
-      else this.props.onDateChange('range', this.meta.propActiveDates);
+      if(spanEl) datesEl.removeChild(spanEl);
+      datesEl.classList.remove('dragging');
       this.meta.canvasHighlight = -1;
-      this.drawScrubber(); // draw before propActiveDates are cleared
+      this.drawScrubber();
+      const { propActiveDateOpt, propActiveDates } = this.meta;
+      if(propActiveDateOpt > -1) {
+        callback = () => this.props.onDateChange('opt', propActiveDateOpt);
+      } else {
+        callback = () => this.props.onDateChange('range', propActiveDates);
+      }
+      delay = 0;
       this.meta.propActiveDateOpt = -1;
       this.meta.propActiveDates = null;
     }
+
+    if(callback) debounce(callback, delay, 'date-scrubber');
   }
 
   scrubSelect = e => {
@@ -353,8 +371,7 @@ export default class Interface extends Component {
 
   render = () => {
     const { 
-      headerIndex,
-      highlightDate
+      headerIndex
     } = this.state;
     const {
       weekdays // hover
@@ -372,18 +389,17 @@ export default class Interface extends Component {
       const fmt = sepFrmt(activeDates[0], activeDates[1]);
       const props = {};
       if(useRef) props.ref = 'dates';
-      else if(highlightDate) return <div className="dates">{highlightDate}</div>;
       if(activeDates[0] === activeDates[1]) return (
-        <div className="dates" {...props} key={highlightDate}>
+        <div className="dates" {...props}>
           <span className="rest">{fmt[0].m} {fmt[0].d}</span> 
           {fmt[0].useYear ? <span className="year">, {fmt[0].y}</span> : null}
         </div>
       );
       return (
-        <div className="dates" {...props} key={highlightDate}>
+        <div className="dates" {...props}>
           <span className="rest">{fmt[0].m} {fmt[0].d}</span> 
           {fmt[0].useYear ? <span className="year">, {fmt[0].y}</span> : null}
-          {` - `}
+          <span>{` - `}</span>
           <span className="rest">{fmt[1].m} {fmt[1].d}</span> 
           {fmt[1].useYear ? <span className="year">, {fmt[1].y}</span> : null}
         </div>
@@ -397,6 +413,7 @@ export default class Interface extends Component {
         <div ref="header" className="interface-header">
           <div className="header-slider" data-slide={headerIndex}>
             <section id="header-basic">
+
               <div className="header-left">
                 <ul ref="appOpts" className="app-opts">
                   <div ref="appOptBg" className="bg" data-index={-1} />
@@ -425,7 +442,9 @@ export default class Interface extends Component {
                   ><div className="clickitem">Adj</div></li>
                 </ul>
               </div>
+
               {renderDates(true)}
+
               <div className="header-right">
                 <ul ref="dateOpts" className="date-opts">
                   <div ref="dateOptBg" className="bg" data-index={-1} />

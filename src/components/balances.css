@@ -87,32 +87,37 @@
   color: white;
 }
 
-#balances .data > div {
+#balances .data > table {
   max-width: 450px;
-}
-#balances .data-row {
   width: 100%;
-  display: flex;
 }
-#balances .data-row div {
-  width: 35%;
-  flex-grow: 0;
-  flex-shrink: 0;
-  padding-right: 5px;
+#balances .data td {
+  padding: 0;
+}
+#balances .data tr:nth-of-type(even):not(:last-child) td {
+  padding-bottom: 20px;
+}
+#balances .data tr td:nth-of-type(2) {
+  padding-right: 30px;
+  padding-left: 30px;
 }
 #balances .data-row .thin {
   width: 30%;
 }
-#balances .label-row {
-  align-items: flex-end;
+#balances .label-row td {
   user-select: none;
-  font-size: 1em;
   line-height: 1em;
-  color: hsla(220, 39%, 65%, .8);
+  opacity: .5;
+  font-weight: 500;
+  font-size: .8em;
+  text-transform: uppercase;
+  vertical-align: bottom;
 }
-#balances .value-row {
+#balances .data-row td {
+  vertical-align: top;
+}
+#balances .value-row:not(:last-child) {
   margin-bottom: 10px;
-  font-size: 1.2em;
 }
 
 @media only screen and (max-width: 767px) {
@@ -122,6 +127,13 @@
 }
 
 .mobile #balances .balance { font-size: 2em }
-.mobile #balances .label-row div { font-size: .8em }
-.mobile #balances .data-row div { width: 33%; padding: 0; }
-.mobile #balances .value-row div { font-size: .9em }
+.mobile #balances .data tr:nth-of-type(even):not(:last-child) td { padding-bottom: 10px; }
+.mobile #balances .label-row td { font-size: .6em; }
+.mobile #balances .data-row td { 
+  font-size: .8em; 
+  line-height: 1em;
+}
+.mobile #balances .data tr td:nth-of-type(2) {
+  padding-left: 5px!important;
+  padding-right: 5px!important;
+}
