@@ -20,30 +20,36 @@ const LOGIN_ANIM_DURATION = 1000;
 
 const NOW = moment();
 const DATE_OPTS = [
-  {
+  { // 1 month
     range_count: '1',
     range_type: 'M',
     start: NOW.clone().subtract(1, 'months'),
     end: NOW,
   },
-  {
+  { // 3 months
     range_count: '3',
     range_type: 'M',
     start: NOW.clone().subtract(3, 'months'),
     end: NOW,
   },
-  {
-    range_count: '6',
-    range_type: 'M',
-    start: NOW.clone().subtract(6, 'months'),
-    end: NOW,
-  },
-  {
+  // { // 6 months
+  //   range_count: '6',
+  //   range_type: 'M',
+  //   start: NOW.clone().subtract(6, 'months'),
+  //   end: NOW,
+  // },
+  { // 1 year
     range_count: '1',
     range_type: 'Y',
     start: NOW.clone().subtract(12, 'months'),
     end: NOW,
-  }
+  },
+  { // all time
+    range_count: 'ALL',
+    range_type: '',
+    start: moment('2000-1-1'),
+    end: NOW,
+  },
 ];
 
 class App extends Component {
@@ -123,8 +129,9 @@ class App extends Component {
     const startDate = moment(acctData.meta.start_date, 'L');
     DATE_OPTS[0].start = lastDay.clone().subtract(1,'months');
     DATE_OPTS[1].start = lastDay.clone().subtract(3,'months');
-    DATE_OPTS[2].start = lastDay.clone().subtract(6,'months');
-    DATE_OPTS[3].start = lastDay.clone().subtract(1,'years');
+    // DATE_OPTS[2].start = lastDay.clone().subtract(6,'months');
+    DATE_OPTS[2].start = lastDay.clone().subtract(1,'years');
+    DATE_OPTS[3].start = startDate;
     DATE_OPTS.forEach(d => {
       if(d.start.isBefore(startDate)) d.start = startDate;
       d.end = lastDay;

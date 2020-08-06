@@ -64,7 +64,7 @@
 }
 #balances .stat .range {
   margin: 7px 0;
-  height: 7px;
+  height: 6px;
   width: 100%;
   background: hsla(220, 39%, 65%, .2);
   border-radius: 90000px;

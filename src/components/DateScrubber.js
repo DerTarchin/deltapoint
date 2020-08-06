@@ -126,7 +126,7 @@ export default class DateScrubber extends Component {
       canvasPos.y = canvasPos.y - this.refs.container.clientHeight;
       const highlight = Math.min(
         Math.floor((e.pageX - canvasPos.x + offset) / distance), 
-        this.meta.weekdays.length-1
+        this.meta.weekdays.length - 1
       );
 
       const day = moment(this.meta.weekdays[highlight], 'L');
@@ -217,14 +217,6 @@ export default class DateScrubber extends Component {
     const fmt = frmt(dates[0], dates[1]);
     if(fmt[0] === fmt[1]) return fmt[0];
     return `${fmt[0]} - ${fmt[1]}`;
-    // console.log(frmt(dates[0], dates[1]))
-    // fmt = sepFrmt(dates[0], dates[1]);
-    // str = `${fmt[0].m} ${fmt[0].d}`;
-    // if(fmt[0].useYear) str += `, ${fmt[0].y}`;
-    // if(dates[0] !== dates[1]) {
-    //   str += ` - ${fmt[1].m} ${fmt[1].d}`;
-    //   if(fmt[1].useYear) str += `, ${fmt[1].y}`;
-    // }
   }
 
   render = () => {

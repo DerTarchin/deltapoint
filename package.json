@@ -5,12 +5,14 @@
   "private": true,
   "dependencies": {
     "animejs": "^3.1.0",
+    "chart.js": "^2.9.3",
     "crypto-js": "^3.1.9-1",
     "moment": "^2.24.0",
     "react": "^16.8.6",
     "react-chartjs": "^1.2.0",
+    "react-chartjs-2": "^2.10.0",
     "react-dom": "^16.8.6",
-    "react-scripts": "^3.0.1",
+    "react-scripts": "^3.4.1",
     "request": "^2.88.0",
     "swipejs": "^2.2.14"
   },
@@ -24,9 +26,9 @@
   },
   "devDependencies": {
     "gh-pages": "^2.0.1",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "merge": ">=1.2.1",
-    "react-dev-utils": "^9.0.1"
+    "react-dev-utils": "^10.2.1"
   },
   "browserslist": {
     "production": [

@@ -23,8 +23,8 @@ export default class Balances extends Component {
   componentWillReceiveProps = props => {
     // ANIMATE TRANSITIONS
     if(this.state.showData || this.props.mobile) return;
-    const old = getLatest(this.props.data, this.props.activeDates[1]),
-          latest = getLatest(props.data, props.activeDates[1]),
+    const old = getLatest(this.props.data, this.props.activeDates[1]).data,
+          latest = getLatest(props.data, props.activeDates[1]).data,
           perc = props.dataView === '%';
     let shouldAnimate = false;
     if(old.adj.balance !== latest.adj.balance) shouldAnimate = true;
@@ -98,7 +98,7 @@ export default class Balances extends Component {
     const { data, activeDates, dataView, mobile } = this.props;
     const { showData } = this.state;
     const perc = dataView === '%';
-    const latest = getLatest(data, activeDates[1]),
+    const latest = getLatest(data, activeDates[1]).data,
           balance = getNumberProperties(round(latest.adj.balance, 2)),
           // balance = getNumberProperties(round(123456.78, 2)),
           ytd = getNumberProperties(round(latest.ytd_contributions, 2)),

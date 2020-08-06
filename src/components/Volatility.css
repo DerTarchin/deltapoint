@@ -1,0 +1,43 @@
+#volatility .bars {
+  height: 130px;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  direction: rtl;
+  overflow-y: hidden;
+  overflow-x: scroll;
+  padding: 10px;
+  padding-left: 0;
+  align-items: flex-end;
+}
+#volatility .bar {
+  height: 100%;
+  min-height: 6px;
+  width: 14px;
+  flex-grow: 0;
+  flex-shrink: 0;
+  position: relative;
+  transition: height .2s;
+}
+#volatility .bar:before {
+  content: '';
+  display: block;
+  height: 100%;
+  width: 6px;
+  position: absolute;
+  top: 0;
+  left: 4px;
+  background: rgb(182, 160, 248);
+  border-radius: 3px;
+  box-shadow: rgba(182, 160, 248, 0.7) 0px 0px 7px 0px;
+}
+#volatility .bar:first-child {
+  width: 10px;
+}
+#volatility .bar:last-child {
+  width: 21px;
+}
+#volatility .bar:last-child:before {
+  left: auto;
+  right: 4px;
+}

@@ -15,10 +15,17 @@ import {
 require('./Breakdown.css');
 
 const VTS = {
+  // 10% to free trades
   tactical: {
-    tickers: ['mdy','ief','gld'],
+    tickers: [
+      'mdy', 
+      'mvv', // 2x MDY
+      'ief', 
+      'ust', // 2x IEF
+      'gld'
+    ],
     label: 'VTS Tactical',
-    allocation: .54 // 60% of 90% of total
+    allocation: .27 // 30% of 90% of total
   },
   aggressive: {
     tickers: ['svxy','vixy'],
@@ -26,9 +33,20 @@ const VTS = {
     allocation: .18 // 20% of 90% of total
   },
   conservative: {
-    tickers: ['ziv','vxz'],
+    tickers: [
+      'ziv', // deprecated
+      'spy', 
+      'sso', // 2x SPY
+      'tlt', 
+      'vxx',
+    ],
     label: 'VTS Conservative',
     allocation: .18 // 20% of 90% of total
+  },
+  rotation: {
+    tickers: ['vpu', 'vig', 'vglt'],
+    label: 'VTS Defensive Rotation',
+    allocation: .27 // 30% of 90% of total
   }
 }
 
@@ -159,7 +177,7 @@ export default class Breakdown extends Component {
   render = () => {
     const { data, activeDates, mobile } = this.props;
     const { key, showData } = this.state;
-    const latest = getLatest(data, activeDates[1]);
+    const latest = getLatest(data, activeDates[1]).data;
 
     const positions = {
       tactical: {
@@ -279,7 +297,7 @@ export default class Breakdown extends Component {
 
     const renderKeys = () => {
       if(mobile) return null;
-      // console.log(positions)
+
       return <div className="stats-container main" >
         <div className="keys" ref="keys">
           {

@@ -27,7 +27,7 @@
 #breakdown circle {
   fill: none;
   stroke-linecap: round;
-  stroke-width: 7px;
+  stroke-width: 5px;
   vector-effect: non-scaling-stroke;
   stroke-dashoffset: 0;
   stroke-dasharray: 0;

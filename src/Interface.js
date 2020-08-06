@@ -63,7 +63,6 @@ export default class Interface extends Component {
       duration: TILE_INTRO_DURATION,
       offset: TILE_INTRO_DELAY * 2
     });
-    this.meta.mounted = true;
   }
 
   componentWillReceiveProps = props => {
@@ -162,11 +161,15 @@ export default class Interface extends Component {
         if(this.state.headerIndex) this.changeHeader();
         onDateChange('opt', 1);
         return;
-      case 'Digit6': 
+      // case 'Digit6': 
+      //   if(this.state.headerIndex) this.changeHeader();
+      //   onDateChange('opt', 2);
+      //   return;
+      case 'KeyY': 
         if(this.state.headerIndex) this.changeHeader();
         onDateChange('opt', 2);
         return;
-      case 'KeyY': 
+      case 'KeyM': 
         if(this.state.headerIndex) this.changeHeader();
         onDateChange('opt', 3);
         return;
@@ -293,13 +296,9 @@ export default class Interface extends Component {
 
         <div className="interface-content">
           <section className="tile-col left">
-            {
-              <Portfolio {...this.props} />
-            }
+            <Portfolio {...this.props} />
             <Balances {...this.props} />
-            {
-              <Volatility {...this.props} />
-            }
+            <Volatility {...this.props} />
           </section>
           <section className="tile-col right">
             <Breakdown {...this.props} />

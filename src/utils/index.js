@@ -1,5 +1,12 @@
 import { decrypt } from './decrypt';
 import { debounce } from './debounce';
+import { 
+  isEsc,
+  isEnter,
+  isBackspace,
+  propagationPath,
+  getClosestParent,
+} from './events';
 import {
   formatNumber,
   splitNumberSuffix,
@@ -88,11 +95,15 @@ const colorMap = {
 
 const constrain = (val, min, max) => val < min ? min : val > max ? max : val
 
-const getLatest = (data, date) => {
-  let latest, day = date.clone();
-  while(!latest) {
-    latest = data[day.format('L')];
-    day.subtract(1, 'days');
+// must be a valid date within the data otherwise an infinite loop will ensue
+const getLatest = (data, date, up) => {
+  let latest = {}, day = date.clone();
+  while(!latest.data) {
+    const datestr = day.format('L');
+    if(data[datestr]) {
+      latest = { data: data[datestr], date: day.clone() };
+    }
+    day[up ? 'add' : 'subtract'](1, 'days');
   }
   return latest;
 }
@@ -115,5 +126,10 @@ export {
   p5map,
   constrain,
   colorMap,
-  getLatest
+  getLatest,
+  isEsc,
+  isEnter,
+  isBackspace,
+  propagationPath,
+  getClosestParent,
 }
