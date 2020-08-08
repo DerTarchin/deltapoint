@@ -5,11 +5,11 @@ import {
   formatNumber,
   getNumberProperties, 
   getColorProperties, 
-  makeDoubleDecimal,
   glow,
   colorMap,
   constrain,
   getLatest,
+  formatMoney,
 } from '../utils';
 
 require('./Breakdown.css');
@@ -44,7 +44,11 @@ const VTS = {
     allocation: .18 // 20% of 90% of total
   },
   rotation: {
-    tickers: ['vpu', 'vig', 'vglt'],
+    tickers: [
+      'vpu', 
+      'vig', 
+      'vglt'
+    ],
     label: 'VTS Defensive Rotation',
     allocation: .27 // 30% of 90% of total
   }
@@ -192,6 +196,10 @@ export default class Breakdown extends Component {
         index: 2,
         syms: []
       },
+      rotation: {
+        index: 3,
+        syms: []
+      },
       other: {
         syms: [],
         shares: [],
@@ -201,7 +209,7 @@ export default class Breakdown extends Component {
       },
       cash: {
         value: latest.cash_balance,
-        index: 3,
+        index: 100,
       }
     }
     Object.keys(latest.positions).forEach(sym => {
@@ -232,7 +240,7 @@ export default class Breakdown extends Component {
           <div className="row">
             <div style={{width: '100%', textAlign: 'center'}}>
               <div className="label">Cash Balance</div>
-              <div className="value">${makeDoubleDecimal(getNumberProperties(latest.adj.cash_balance)).comma}</div>
+              <div className="value">${formatMoney(latest.adj.cash_balance)}</div>
             </div>
           </div>
         </div>
@@ -245,7 +253,7 @@ export default class Breakdown extends Component {
           <div className="row">
             <div className="col">
               <div className="label">Total P/L</div>
-              <div className="value">${makeDoubleDecimal(getNumberProperties(dets.total_pl)).comma}</div>
+              <div className="value">${formatMoney(dets.total_pl)}</div>
             </div>
             <div className="col">
               <div className="label">Total P/L %</div>
@@ -253,7 +261,7 @@ export default class Breakdown extends Component {
             </div>
             <div className="col">
               <div className="label">Total Traded</div>
-              <div className="value">${makeDoubleDecimal(getNumberProperties(round(dets.buys, 2))).comma}</div>
+              <div className="value">${formatMoney(round(dets.buys, 2))}</div>
             </div>
           </div>
           {
@@ -267,7 +275,7 @@ export default class Breakdown extends Component {
                 </div>
                 <div className="col">
                   <div className="label">Avg</div>
-                  <div className="value">${makeDoubleDecimal(getNumberProperties(round(dets.avg, 2))).comma}</div>
+                  <div className="value">${formatMoney(round(dets.avg, 2))}</div>
                 </div>
                 <div className="col">
                   <div className="label">Trade #</div>
@@ -277,7 +285,7 @@ export default class Breakdown extends Component {
               <div className="row" key="r2">
                 <div className="col">
                   <div className="label">P/L Open</div>
-                  <div className="value">${makeDoubleDecimal(getNumberProperties(round(dets.shares * dets.c - dets.shares * dets.avg, 2))).comma}</div>
+                  <div className="value">${formatMoney(round(dets.shares * dets.c - dets.shares * dets.avg, 2))}</div>
                 </div>
                 <div className="col">
                   <div className="label">P/L Open %</div>
@@ -285,7 +293,7 @@ export default class Breakdown extends Component {
                 </div>
                 <div className="col">
                   <div className="label">Trade Cost</div>
-                  <div className="value">${makeDoubleDecimal(getNumberProperties(round(dets.shares * dets.avg, 2))).comma}</div>
+                  <div className="value">${formatMoney(round(dets.shares * dets.avg, 2))}</div>
                 </div>
               </div>
             ]
@@ -303,14 +311,18 @@ export default class Breakdown extends Component {
           {
             Object.keys(positions).sort((a,b) => positions[a].index - positions[b].index).map(pos => {
               const active = positions[pos].perc > 0;
+              let val;
+              if(pos === 'cash') val = `$${formatMoney(positions[pos].value)}`;
+              else if(active) val = positions[pos].syms.join(', ');
 
               const renderKey = (text, sub) => {
                 return <div 
+                  data-type={pos}
                   className={`key ${active ? 'active' : ''}`} 
                   key={text}
                   onClick={e => this.setState({ key: pos === key ? null : pos, showData: true, slide: 1 })}
                 >
-                  <div className="icon">
+                  <div className="icon" style={pos === 'cash' ? { visibility: 'hidden' } : null}>
                     <div style={{
                       background: colorMap[pos], 
                       boxShadow: glow(getColorProperties(colorMap[pos]))
@@ -322,7 +334,7 @@ export default class Breakdown extends Component {
                   </div>
                 </div>
               }
-              return renderKey(pos, active && pos !== 'cash' ? positions[pos].syms.join(', ') : null);
+              return renderKey(pos, val);
             })
           }
         </div>
@@ -358,10 +370,14 @@ export default class Breakdown extends Component {
                         </feMerge>
                       </filter>
                   </defs>
-                  { Object.keys(positions).map((pos, i) => <circle key={i} className="track" cx="50%" cy="50%" />) }
+                  { 
+                    Object.keys(positions).filter(pos => pos !== 'cash').map(pos => (
+                      <circle key={pos} className="track" cx="50%" cy="50%" />
+                    )) 
+                  }
                   {
-                    Object.keys(positions).map(pos => {
-                      return <circle 
+                    Object.keys(positions).filter(pos => pos !== 'cash').map(pos => (
+                      <circle 
                         key={pos}
                         className="color"
                         data-index={positions[pos].index}
@@ -371,25 +387,27 @@ export default class Breakdown extends Component {
                         cx="50%" 
                         cy="50%" 
                       />
-                    })
+                    ))
                   }
                 </svg>
                 {
-                  Object.keys(positions).map(pos => {
+                  Object.keys(positions).filter(pos => pos !== 'cash').map(pos => {
                     if(pos === 'cash') return null;
                     let goal; // percent size of account
                     if(VTS[pos]) goal = VTS[pos].allocation;
                     else goal = 1 - Object.keys(VTS).reduce((t,v) => t + VTS[v].allocation, 0);
 
                     // TODO make more accurate based on prices
-                    return <svg id={'mark-'+pos} key={pos}><circle 
-                      className="mark"
-                      data-index={positions[pos].index}
-                      data-perc={goal}
-                      style={{ stroke: goal > positions[pos].perc ? colorMap[pos] : null }}
-                      cx="50%" 
-                      cy="50%" 
-                    /></svg>
+                    return <svg id={'mark-'+pos} key={pos}>
+                      <circle 
+                        className="mark"
+                        data-index={positions[pos].index}
+                        data-perc={goal}
+                        style={{ stroke: goal > positions[pos].perc ? colorMap[pos] : null }}
+                        cx="50%" 
+                        cy="50%" 
+                      />
+                    </svg>
                   })
                 }
               </div>

@@ -1,0 +1,23 @@
+#portfolio .body {
+  display: flex;
+  flex-shrink: 1;
+  cursor: default;
+}
+#portfolio .chart-wrapper {
+  display: flex;
+  position: relative;
+  height: calc(100% + 20px);
+  width: calc(100% + 20px);
+  margin: -10px;
+}
+
+#chartjs-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(255,255,255,.1);
+  border-radius: 5px;
+  padding: 5px 8px;
+}
+#chartjs-tooltip .title {
+  font-weight: bold;
+}

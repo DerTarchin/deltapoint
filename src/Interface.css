@@ -65,7 +65,7 @@
   user-select: none;
 }
 .tile .header .title {
-  color: hsla(220, 39%, 65%, .8);
+  color: hsla(220, 39%, 80%, .8);
   font-size: 1.2em;
   font-weight: 100;
 }

@@ -8,6 +8,7 @@ import {
   glow,
   colorMap,
   makeDoubleDecimal,
+  formatMoney,
   getLatest
 } from '../utils';
 import { 
@@ -53,8 +54,7 @@ export default class Balances extends Component {
           if(props.dataView !== this.props.dataView) return;
           if(anim.balance_from_history !== anim.balance_from) {
             const valEls = balance.querySelectorAll('[data-val]');
-            const num = getNumberProperties(round(anim.balance_from, 2));
-            makeDoubleDecimal(num);
+            const num = makeDoubleDecimal(getNumberProperties(round(anim.balance_from, 2)));
             num.comma.split('.').forEach((n, i) => { valEls[i].innerHTML = n});
           }
           if(anim.ytd_from_history !== anim.ytd_from) {
@@ -68,8 +68,7 @@ export default class Balances extends Component {
               if(Math.abs(latest.adj.plPerc) >= 10) num = round(num, 0);
               pl.querySelector('[data-val]').innerHTML = num;
             } else {
-              const num = getNumberProperties(round(anim.pl_from, 2));
-              makeDoubleDecimal(num);
+              const num = makeDoubleDecimal(getNumberProperties(round(anim.pl_from, 2)));
               const valEls = pl.querySelectorAll('[data-val]');
               num.comma.split('.').forEach((n, i) => { valEls[i].innerHTML = n});
             }
@@ -100,7 +99,6 @@ export default class Balances extends Component {
     const perc = dataView === '%';
     const latest = getLatest(data, activeDates[1]).data,
           balance = getNumberProperties(round(latest.adj.balance, 2)),
-          // balance = getNumberProperties(round(123456.78, 2)),
           ytd = getNumberProperties(round(latest.ytd_contributions, 2)),
           max = getNumberProperties(round(this.getMaxContributions(activeDates[1]), 2)),
           ytdRange = 100 * ytd.value / max.value,
@@ -111,7 +109,7 @@ export default class Balances extends Component {
                          Math.abs(latest.adj.plPerc) < 1 ? 2 :
                          Math.abs(latest.adj.plPerc) < 10 ? 1 : 0),
           plRange = 100 * Math.abs(pl.value) / (pl.value + total.value);
-    [balance,pl].map(v => makeDoubleDecimal(v));
+    [balance,pl].map(makeDoubleDecimal);
     let commIndex = data.meta.commission.length - 1,
         currComm = data.meta.commission[commIndex];
     while(moment(currComm[0],'L').isAfter(activeDates[1])) {
@@ -167,8 +165,8 @@ export default class Balances extends Component {
                   <div className="range">
                     <div style={{
                       width: ytdRange + '%',
-                      background: colorMap.cash,
-                      boxShadow: glow(getColorProperties(colorMap.cash))
+                      background: colorMap.rotation,
+                      boxShadow: glow(getColorProperties(colorMap.rotation))
                     }} />
                   </div>
                   <div className="details">
@@ -196,8 +194,8 @@ export default class Balances extends Component {
                   <div className="range">
                     <div style={{
                       width: plRange + '%',
-                      background: pl.value < 0 ? colorMap.other : colorMap.tactical, // purple / green
-                      boxShadow: glow(getColorProperties(pl.value < 0 ? colorMap.other : colorMap.tactical))
+                      background: pl.value < 0 ? colorMap.other : colorMap.conservative, // purple / blue
+                      boxShadow: glow(getColorProperties(pl.value < 0 ? colorMap.other : colorMap.conservative))
                     }} />
                   </div>
                   <div className="details">
@@ -225,7 +223,7 @@ export default class Balances extends Component {
                   <tr className="data-row">
                     <td>${balance.comma}</td>
                     <td>${ytd.comma}</td>
-                    <td>${makeDoubleDecimal(getNumberProperties(round(latest.total_fees, 2))).comma}</td>
+                    <td>${formatMoney(latest.total_fees, 2)}</td>
                   </tr>
 
                   <tr className="label-row">

@@ -64,7 +64,7 @@ const getFullNumber = num => {
   return _num.value;
 }
 
-const round = (num, scale) => {
+const round = (num, scale=0) => {
   if(!("" + num).includes("e")) {
     return +(Math.round(num + "e+" + scale)  + "e-" + scale);
   } else {
@@ -84,11 +84,14 @@ const makeDoubleDecimal = props => {
   return props;
 }
 
+const formatMoney = (val, dontRound) => makeDoubleDecimal(getNumberProperties(dontRound ? val : round(val, 2))).comma
+
 export {
   formatNumber,
   splitNumberSuffix,
   getFullNumber,
   getNumberProperties,
   makeDoubleDecimal,
+  formatMoney,
   round,
 }

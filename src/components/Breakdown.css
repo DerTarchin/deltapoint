@@ -79,6 +79,9 @@
   cursor: pointer;
   transition: opacity .2s, transform .1s;
 }
+#breakdown .key[data-type="cash"] {
+  pointer-events: none;
+}
 #breakdown .key.active {
   opacity: 1;
 }

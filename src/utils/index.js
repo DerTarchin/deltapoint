@@ -13,6 +13,7 @@ import {
   getFullNumber,
   getNumberProperties,
   makeDoubleDecimal,
+  formatMoney,
   round,
 } from './numformat';
 import {
@@ -88,8 +89,10 @@ const colorMap = {
   tactical: '#71f48b', // hsl(132, 85%, 70%) = green,
   conservative: '#5af2f2', // hsl(180, 85%, 65%) = blue 
   aggressive: '#559ef6', // hsl(213, 90%, 65%) = dark blue faded
-  cash: '#b6a0f8', // hsl(255, 85%, 80%) = lilac,
-  other: '#f688de', // hsl(313, 85%, 75%) = pink,
+  // used to be "cash"
+  rotation: '#b6a0f8', // hsl(255, 85%, 80%) = lilac
+  other: '#f688de', // hsl(313, 85%, 75%) = pink
+  cash: '#445db1', // same as bg for now
   bg: '#445db1', // hsl(226, 44%, 48%) = dark blue faded
 }
 
@@ -119,6 +122,7 @@ export {
   getFullNumber,
   getNumberProperties,
   makeDoubleDecimal,
+  formatMoney,
   round,
   getAlpha,
   glow,
