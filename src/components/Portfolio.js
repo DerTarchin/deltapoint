@@ -1,6 +1,11 @@
 import React, { Component } from 'react';
 import moment from 'moment';
 import { Line } from 'react-chartjs-2';
+import 'chartjs-plugin-annotation';
+// https://github.com/abelheinsbroek/chartjs-plugin-crosshair
+// import 'chartjs-plugin-crosshair';
+// TODO: use glows from this plugin
+// https://nagix.github.io/chartjs-plugin-style/
 import { 
   formatMoney, 
   frmt, 
@@ -17,10 +22,6 @@ export default class Portfolio extends Component {
     this.calcData();
   }
 
-  componentDidMount = () => {
-    // this.registerVerticalLineInstance();
-  }
-
   componentDidUpdate = prevProps => {
     // check if data changed
     let dataChanged = false;
@@ -29,63 +30,33 @@ export default class Portfolio extends Component {
     if(prevProps.feeAdjustments !== this.props.feeAdjustments) dataChanged = true;
     if(prevProps.contributionAdjustments !== this.props.contributionAdjustments) dataChanged = true;
     if(dataChanged) this.calcData();
-    // this.registerVerticalLineInstance();
-  }
-
-  registerVerticalLineInstance = () => {
-    if(!this.refs.chart || this.meta.registeredInstance) return;
-    const instance = this.refs.chart.chartInstance;
-    this.meta.registeredInstance = true;
-    // console.log(instance)
-    instance.pluginService.register({
-      id: 'threshold',
-      afterDraw: (chart, easing) => {
-        if (typeof chart.chart.config.data.datasets[0].install != 'undefined') {
-          if (chart.chart.config.data.datasets[0].install != '-1') {
-            var meta = chart.getDatasetMeta(0);
-            var x = meta.data[chart.chart.config.data.datasets[0].install]._model.x;
-            chart.chart.ctx.restore();
-            chart.chart.ctx.beginPath();
-            chart.chart.ctx.setLineDash([5, 5]);
-            chart.chart.ctx.strokeStyle = '#000000';
-            chart.chart.ctx.moveTo(x, 0);
-            chart.chart.ctx.lineTo(x, 10000);
-            chart.chart.ctx.stroke();
-          }
-        }
-      }
-    });
   }
 
   calcData = () => {
     const { history, activeDates, data, dataView } = this.props;
 
-    const isSingleDate = activeDates[0].isSame(activeDates[1]);
-    const filter = key => key !== 'meta' && data[key];
-    // console.log(this.props, isSingleDate)
-    if(isSingleDate) return;
+    if(activeDates[0].isSame(activeDates[1])) return;
+    const datesKeys = Object.keys(data).filter(key => key !== 'meta' && data[key]);
+
     const chartData = {
-      labels: Object.keys(data).filter(filter),
+      labels: datesKeys,
       datasets: [
         {
           fill: false,
-          // lineTension: 0.5,
           backgroundColor: 'rgba(75,192,192,0.4)',
           borderColor: 'rgba(75,192,192,1)',
           borderCapStyle: 'butt',
           borderDash: [],
           borderDashOffset: 0.0,
           borderJoinStyle: 'miter',
-          pointBorderColor: 'rgba(75,192,192,1)',
+          pointBorderColor: 'rgba(0,0,0,0)',
+          pointBorderWidth: 0,
           pointBackgroundColor: '#fff',
-          pointBorderWidth: 1,
           pointHoverRadius: 5,
-          pointHoverBackgroundColor: 'rgba(75,192,192,1)',
-          pointHoverBorderColor: 'rgba(220,220,220,1)',
-          pointHoverBorderWidth: 2,
+          pointHoverBackgroundColor: '#fff',
           pointRadius: 1,
           pointHitRadius: 10,
-          data: Object.keys(data).filter(filter).map(key => {
+          data: datesKeys.map(key => {
             if(dataView === '$') return data[key].adj.balance;
             if(dataView === '%') return data[key].adj.plPerc;
           }),
@@ -93,10 +64,37 @@ export default class Portfolio extends Component {
       ]
     }
 
+    let lineTension = 0.4; 
+    if(datesKeys.length > 200) lineTension = 0.25;
+    if(datesKeys.length > 400) lineTension = 0.01;
+
     const chartOptions = {
       responsive: true,
       maintainAspectRatio: false,
       legend: false,
+      elements: {
+        line: {
+          tension: lineTension
+        },
+        point: {
+          borderWidth: 0
+        }
+      },
+      annotation: {
+        // annotations: [{
+        //   type: 'line',
+        //   mode: 'horizontal',
+        //   scaleID: 'y-axis-0',
+        //   value: 0,
+        //   borderColor: 'rgb(75, 192, 192)',
+        //   borderWidth: 4,
+        //   label: {
+        //     enabled: true,
+        //     content: '0'
+        //     // format label: https://github.com/chartjs/chartjs-plugin-annotation
+        //   }
+        // }]
+      },
       layout: {
         padding: 10,
       },
@@ -106,6 +104,7 @@ export default class Portfolio extends Component {
             display: false,
             drawBorder: false,
           },
+          scaleID: 'y-axis-0',
           display: false
         }],
         xAxes: [{
@@ -116,11 +115,22 @@ export default class Portfolio extends Component {
           display: false
         }]
       },
-      tooltips: {
-        // Disable the on-canvas tooltip
-        enabled: false,
-        mode: 'index',
+      hover: {
         intersect: false,
+        mode: 'index',
+        animationDuration: 0.01
+      },
+      // plugins: {
+      //   crosshair: {
+      //     snap: {
+      //       enabled: true
+      //     },
+      //   },
+      // },
+      tooltips: {
+        enabled: false, // Disable the on-canvas tooltip
+        intersect: false, // Prevent need for mouse to touch the line
+        mode: 'index',
         custom: function(context) {
           // Tooltip Element
           var tooltipEl = document.getElementById('chartjs-tooltip');
@@ -147,10 +157,6 @@ export default class Portfolio extends Component {
             tooltipEl.classList.add('no-transform');
           }
 
-          function getBody(bodyItem) {
-            return bodyItem.lines;
-          }
-
           // Set Text
           if(context.body) {
             let innerHtml = '';
@@ -158,7 +164,7 @@ export default class Portfolio extends Component {
                 innerHtml += '<div class="title">' + frmt(moment(title, 'L')) + '</div>';
             });
 
-            context.body.map(getBody).forEach(function(body, i) {
+            context.body.map(b => b.lines).forEach(function(body, i) {
               const val = body[0]
               if(dataView === '$') innerHtml += `<div class="value">$${formatMoney(val)}</div>`;
               if(dataView === '%') innerHtml += `<div class="value">${round(val, Math.abs(val) < 1 ? 2 : Math.abs(val) < 10 ? 1 : 0)}%</div>`;
@@ -179,12 +185,10 @@ export default class Portfolio extends Component {
       }
     }
 
-    const newState = {
+    this.setState({
       chartData: chartData,
       chartOptions: chartOptions,
-    };
-    if(!isSingleDate) newState.dates = activeDates;
-    this.setState(newState)
+    })
   }
 
   render = () => {

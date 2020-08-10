@@ -17,6 +17,7 @@
   background: rgba(255,255,255,.1);
   border-radius: 5px;
   padding: 5px 8px;
+  margin: 25px;
 }
 #chartjs-tooltip .title {
   font-weight: bold;
