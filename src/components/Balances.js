@@ -27,6 +27,7 @@ export default class Balances extends Component {
     const old = getLatest(this.props.data, this.props.activeDates[1]).data,
           latest = getLatest(props.data, props.activeDates[1]).data,
           perc = props.dataView === '%';
+          
     let shouldAnimate = false;
     if(old.adj.balance !== latest.adj.balance) shouldAnimate = true;
     if(old.ytd_contributions !== latest.ytd_contributions) shouldAnimate = true;
@@ -120,8 +121,9 @@ export default class Balances extends Component {
     const calcAge = () => {
       const start = moment(data.meta.start_date, 'L');
       const days = activeDates[1].diff(start, 'days'),
-            months = round(days/30, 0),
-            years = round(months/12, 0);
+            months = Math.floor(days/30, 0),
+            years = Math.floor(months/12, 0);
+      console.log(start, days, months, years)
       if(days <= 31) return `${days} day${days !== 1 ? 's' : ''}`;
       if(months <= 12) return `${months} month${months !== 1 ? 's' : ''}`;
       let text = `${years} year${years !== 1 ? 's' : ''}`;
@@ -194,7 +196,7 @@ export default class Balances extends Component {
                   <div className="range">
                     <div style={{
                       width: plRange + '%',
-                      background: pl.value < 0 ? colorMap.other : colorMap.conservative, // purple / blue
+                      background: pl.value < 0 ? colorMap.other : colorMap.conservative, // pink / blue
                       boxShadow: glow(getColorProperties(pl.value < 0 ? colorMap.other : colorMap.conservative))
                     }} />
                   </div>

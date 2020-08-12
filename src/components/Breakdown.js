@@ -171,7 +171,7 @@ export default class Breakdown extends Component {
       const circle = el.querySelector('.mark');
       const i = circle.getAttribute('data-index');
       const r = constrain(baseRadius * (1 - (.15*i)), baseRadius - (18*i), baseRadius - (15*i));
-      circle.setAttribute('r', r);
+      circle.setAttribute('r', Math.max(r,0));
       circle.style.strokeDasharray = 2 * Math.PI * r;
       circle.style.strokeDashoffset = parseFloat(circle.style.strokeDasharray) - .01;
       el.style.transform = `rotate(${-90 + (360 * circle.getAttribute('data-perc'))}deg)`;

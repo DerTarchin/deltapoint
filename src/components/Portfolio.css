@@ -8,17 +8,22 @@
   position: relative;
   height: calc(100% + 20px);
   width: calc(100% + 20px);
-  margin: -10px;
+  margin: -10px -10px;
 }
 
-#chartjs-tooltip {
+.portfolio-tooltip {
   position: absolute;
   pointer-events: none;
   background: rgba(255,255,255,.1);
   border-radius: 5px;
   padding: 5px 8px;
-  margin: 25px;
 }
-#chartjs-tooltip .title {
+.portfolio-tooltip .title {
   font-weight: bold;
+}
+
+@media only screen and (max-width: 767px) {
+  .portfolio-tooltip {
+    margin: 0;
+  }
 }

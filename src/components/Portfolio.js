@@ -4,12 +4,15 @@ import { Line } from 'react-chartjs-2';
 import 'chartjs-plugin-annotation';
 // https://github.com/abelheinsbroek/chartjs-plugin-crosshair
 // import 'chartjs-plugin-crosshair';
-// TODO: use glows from this plugin
-// https://nagix.github.io/chartjs-plugin-style/
+import 'chartjs-plugin-style';
 import { 
   formatMoney, 
   frmt, 
-  round 
+  round,
+  constrain,
+  getLatest,
+  colorMap,
+  getColorProperties
 } from '../utils';
 
 require('./Portfolio.css');
@@ -33,40 +36,44 @@ export default class Portfolio extends Component {
   }
 
   calcData = () => {
-    const { history, activeDates, data, dataView } = this.props;
+    const { history, activeDates, data, dataView, mobile } = this.props;
 
     if(activeDates[0].isSame(activeDates[1])) return;
+    // all dates (strings)
     const datesKeys = Object.keys(data).filter(key => key !== 'meta' && data[key]);
+    // profit/loss type key 
+    const valKey = dataView === '$' ? 'balance' : 'plPerc';
+    // check if chart ends higher than it began
+    const isGain = data[datesKeys[0]].adj.pl < data[datesKeys[datesKeys.length - 1]].adj.pl;
+    // check if color should be positive or negative
+    const color = isGain ? colorMap.conservative : colorMap.other,
+          colorProps = getColorProperties(color);
+    // calc min and max vals for chart
+    let min = datesKeys.reduce((min, date) => Math.min(min, data[date].adj[valKey]), data[datesKeys[0]].adj[valKey]),
+        max = datesKeys.reduce((max, date) => Math.max(max, data[date].adj[valKey]), data[datesKeys[0]].adj[valKey]);
+    min = min - (Math.abs(max - min) / 10)
+    max = max + (Math.abs(max - min) / 10);
 
     const chartData = {
       labels: datesKeys,
       datasets: [
         {
-          fill: false,
-          backgroundColor: 'rgba(75,192,192,0.4)',
-          borderColor: 'rgba(75,192,192,1)',
-          borderCapStyle: 'butt',
-          borderDash: [],
-          borderDashOffset: 0.0,
-          borderJoinStyle: 'miter',
-          pointBorderColor: 'rgba(0,0,0,0)',
-          pointBorderWidth: 0,
-          pointBackgroundColor: '#fff',
-          pointHoverRadius: 5,
-          pointHoverBackgroundColor: '#fff',
-          pointRadius: 1,
-          pointHitRadius: 10,
-          data: datesKeys.map(key => {
-            if(dataView === '$') return data[key].adj.balance;
-            if(dataView === '%') return data[key].adj.plPerc;
-          }),
+          outerGlowColor: colorProps.rgbStr(colorProps.r, colorProps.g, colorProps.b, .5),
+          outerGlowWidth: 5,
+          data: datesKeys.map(key => data[key].adj[valKey])
         }
       ]
     }
 
-    let lineTension = 0.4; 
-    if(datesKeys.length > 200) lineTension = 0.25;
-    if(datesKeys.length > 400) lineTension = 0.01;
+    let lineTension = 0.4,
+        pointRadius = 1;
+    if(datesKeys.length > 200) {
+      lineTension = 0.25;
+      pointRadius = 0;
+    }
+    if(datesKeys.length > 400) {
+      lineTension = 0.01;
+    }
 
     const chartOptions = {
       responsive: true,
@@ -74,29 +81,40 @@ export default class Portfolio extends Component {
       legend: false,
       elements: {
         line: {
-          tension: lineTension
+          tension: lineTension,
+          borderCapStyle: 'round',
+          fill: false,
+          borderColor: color,
+          borderWidth: 3,
+          borderDash: [],
+          borderDashOffset: 0.0,
+          borderJoinStyle: 'miter',
         },
         point: {
-          borderWidth: 0
+          radius: pointRadius,
+          backgroundColor: 'white',
+          borderColor: 'rgba(0,0,0,0)',
+          hoverBorderColor: 'rgba(0,0,0,0)',
+          hoverBackgroundColor: 'white',
         }
       },
       annotation: {
-        // annotations: [{
-        //   type: 'line',
-        //   mode: 'horizontal',
-        //   scaleID: 'y-axis-0',
-        //   value: 0,
-        //   borderColor: 'rgb(75, 192, 192)',
-        //   borderWidth: 4,
-        //   label: {
-        //     enabled: true,
-        //     content: '0'
-        //     // format label: https://github.com/chartjs/chartjs-plugin-annotation
-        //   }
-        // }]
+        annotations: [{
+          type: 'line',
+          mode: 'horizontal',
+          scaleID: 'y-axis-0',
+          value: 0,
+          borderColor: 'rgb(75, 192, 192)',
+          borderWidth: 4,
+          label: {
+            enabled: true,
+            content: '0'
+            // format label: https://github.com/chartjs/chartjs-plugin-annotation
+          }
+        }]
       },
       layout: {
-        padding: 10,
+        padding: 10
       },
       scales: {
         yAxes: [{
@@ -104,6 +122,7 @@ export default class Portfolio extends Component {
             display: false,
             drawBorder: false,
           },
+          ticks: { min, max },
           scaleID: 'y-axis-0',
           display: false
         }],
@@ -138,6 +157,7 @@ export default class Portfolio extends Component {
           // Create element on first render
           if (!tooltipEl) {
             tooltipEl = document.createElement('div');
+            tooltipEl.classList.add('portfolio-tooltip')
             tooltipEl.id = 'chartjs-tooltip';
             tooltipEl.innerHTML = '<section></section>';
             document.body.appendChild(tooltipEl);
@@ -174,13 +194,34 @@ export default class Portfolio extends Component {
           }
 
           const canvas = document.getElementById('portfolio').querySelector('canvas');
-          var position = {}
+          let position = {}
           if(canvas) position = canvas.getBoundingClientRect();
 
           // Display, position, and set styles for font
           tooltipEl.style.opacity = 1;
-          tooltipEl.style.left = position.left + window.pageXOffset + context.caretX + 'px';
-          tooltipEl.style.top = position.top + window.pageYOffset + context.caretY + 'px';
+          let left, top;
+          // normal screen, below and to the left
+          if(!mobile && window.innerWidth > 767) {
+            const offset = 25;
+            left = (position.left || 0) + window.pageXOffset + context.caretX + offset;
+            top = (position.top || 0) + window.pageYOffset + context.caretY + offset;
+          }
+          // mobile screen, above and centered
+          else {
+            const offset = 25;
+            const tooltipRect = tooltipEl.getBoundingClientRect();
+            top = (position.top || 0) - tooltipRect.height;
+            if(!mobile && top < 70) top = position.top + position.height;
+            left = constrain(
+              (position.left || 0) + window.pageXOffset + context.caretX - (tooltipRect.width / 2),
+              15,
+              window.innerWidth - 15 - tooltipRect.width
+            );
+          }
+          // do not let the tooltip overflow off the page
+
+          tooltipEl.style.left = constrain(left, 15, window.innerWidth - 15) + 'px';
+          tooltipEl.style.top = top + 'px';
         }
       }
     }

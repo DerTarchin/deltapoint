@@ -150,6 +150,13 @@
     top: 20px;
     right: 30px;
   }
+  .app:not(.mobile) .interface-header .app-opts {
+    display: none;
+  }
+  .app:not(.mobile) .interface-header .dates {
+    padding-left: 0;
+    text-align: left;
+  }
 }
 
 .mobile .tile-container { height: 100%!important }
@@ -183,6 +190,7 @@
   padding: 0 36px; /* 16 + 20 */
   margin-bottom: -8px;
   user-select: none;
+  flex-shrink: 0;
 }
 .interface-header .header-slider {
   height: 100%;
