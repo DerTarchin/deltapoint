@@ -111,7 +111,10 @@ const getLatest = (data, date, up) => {
   return latest;
 }
 
+const isNull = (val, ignoreQuotes) => !(val !== undefined && val !== null && (ignoreQuotes || val !== ''));
+
 export {
+  isNull,
   decrypt,
   pagePos,
   frmt, 

@@ -108,6 +108,8 @@
   font-weight: 500;
   font-size: .8em;
   text-transform: uppercase;
+  display: inline-block;
+  min-width: 35px;
 }
 
 #breakdown .data-toggle {

@@ -34,48 +34,25 @@ export default class Interface extends Component {
     window.addEventListener('keydown', this.handleKey);
   }
 
-  componentDidMount = () => {
-    const isSmall = window.innerWidth <= 767;
-    this.meta.tileAnime = anime.timeline().add({
-      targets: isSmall ?
-      [
-        '#portfolio',
-        '#balances',
-        '#volatility',
-        '#breakdown',
-        '#charts',
-      ] : [
-        '#portfolio',
-        '#breakdown',
-        '#balances',
-        '#charts',
-        '#volatility',
-      ],
-      opacity: [0,1],
-      scale: [.8, 1],
-      easing: 'easeInOutSine',
-      duration: TILE_INTRO_DURATION,
-      delay: (el, i, l) => i * TILE_INTRO_DELAY
-    }).add({
-      targets: this.refs.header,
-      opacity: [0,1],
-      easing: 'easeInOutSine',
-      duration: TILE_INTRO_DURATION,
-      offset: TILE_INTRO_DELAY * 2
-    });
+  componentWillReceiveProps = props => {
+    // console.log(props.activeDates, this.props.activeDates)
   }
 
-  componentWillReceiveProps = props => {
+  componentDidUpdate = prevProps => {
+    const { activeDateOpt, activeDates, dataView } = this.props;
+
     // animation of dates in the header when adjusting dates
-    if(!this.state.headerIndex && this.props.activeDates !== props.activeDates) { // first header visible
+    console.log(this.state.headerIndex, prevProps.activeDates, activeDates)
+    if(!this.state.headerIndex && prevProps.activeDates !== activeDates) { // first header visible
       const dates = this.refs.dates || document.querySelector('#header-basic .dates');
       const years = [...dates.getElementsByClassName('year')],
             rest = [...dates.getElementsByClassName('rest')];
-      const fromStartDate = moment(`${rest[0].textContent} ${years[0] ? years[0].textContent : this.props.lastDay.year()}`, 'MMM DD YYYY'),
-            toStartDate = rest[1] ? moment(`${rest[1].textContent} ${years[1] ? years[1].textContent : this.props.lastDay.year()}`, 'MMM DD YYYY') : fromStartDate.clone();
-      const fromDiff = props.activeDates[0].diff(fromStartDate, 'days'),
-            toDiff = props.activeDates[1].diff(toStartDate, 'days');
+      const fromStartDate = moment(`${rest[0].textContent} ${years[0] ? years[0].textContent : prevProps.lastDay.year()}`, 'MMM DD YYYY'),
+            toStartDate = rest[1] ? moment(`${rest[1].textContent} ${years[1] ? years[1].textContent : prevProps.lastDay.year()}`, 'MMM DD YYYY') : fromStartDate.clone();
+      const fromDiff = activeDates[0].diff(fromStartDate, 'days'),
+            toDiff = activeDates[1].diff(toStartDate, 'days');
       const diffs = { fromdiff: 0, todiff: 0, fromdiffhistory: 0, todiffhistory: 0 };
+      console.log('hi')
       if(this.meta.dateMenuAnim) this.meta.dateMenuAnim.pause();
       this.meta.dateMenuAnim = anime({
         targets: diffs, 
@@ -85,6 +62,7 @@ export default class Interface extends Component {
         round: 1,
         duration: 700,
         update: () => {
+          console.log('hi')
           if(diffs.fromdiffhistory === diffs.fromdiff && diffs.todiffhistory === diffs.todiff) return;
           const currFromDate = fromStartDate.clone().add(diffs.fromdiff, 'days'),
                 currToDate = toStartDate.clone().add(diffs.todiff, 'days');
@@ -98,7 +76,27 @@ export default class Interface extends Component {
           diffs.todiffhistory = diffs.todiff;
         }
       })
+    } 
+    // move selected opt backgrounds
+    let bg = this.refs.dateOptBg;
+    if(activeDateOpt < 0) bg.style.opacity = 0;
+    else if(!this.meta.loaded || parseFloat(bg.getAttribute('data-index')) !== activeDateOpt) {
+      const opt = this.refs.dateOpts.querySelectorAll('[data-opt]')[activeDateOpt].getBoundingClientRect();
+      const offset = this.refs.dateOpts.getBoundingClientRect().left;
+      bg.style.opacity = 1;
+      bg.style.width = opt.width+'px';
+      bg.style.height = opt.height+'px';
+      bg.style.left = (opt.left - offset)+'px';
     }
+    bg = this.refs.appOptBg;
+    const { dvDollar, dvPerc } = this.refs;
+    const offset = this.refs.appOpts.getBoundingClientRect().left;
+    const rect = (dataView === '$' ? dvDollar : dvPerc).getBoundingClientRect();
+    bg.style.opacity = 1;
+    bg.style.width = rect.width+'px';
+    bg.style.height = rect.height+'px';
+    bg.style.left = (rect.left - offset)+'px';
+    this.meta.loaded = true;
   }
 
   componentDidUpdate = () => {

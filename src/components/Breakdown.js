@@ -37,6 +37,7 @@ const VTS = {
       'ziv', // deprecated
       'spy', 
       'sso', // 2x SPY
+      'spxl', // SVXY replacement
       'tlt', 
       'vxx',
     ],
@@ -67,12 +68,9 @@ export default class Breakdown extends Component {
     this.calcTradeDetails();
   }
 
-  componentWillReceiveProps = props => {
-    this.calcTradeDetails(props);
-  }
-
-  componentDidUpdate = () => {
-    this.resizeGraphs();
+  componentDidUpdate = prevProps => {
+    if(prevProps !== this.props) this.calcTradeDetails();
+    else this.resizeGraphs();
   }
 
   componentWillUnmount = () => {
@@ -83,8 +81,8 @@ export default class Breakdown extends Component {
     return Object.keys(VTS).find(key => VTS[key].tickers.includes(sym));
   }
 
-  calcTradeDetails = (props = this.props) => {
-    const { history, feeAdjustments } = props;
+  calcTradeDetails = () => {
+    const { history, feeAdjustments } = this.props;
     const tradeDetails = {};
     history.meta.symbols_traded.forEach(sym => {
       const key = this.getVTS(sym) || sym;
@@ -96,7 +94,7 @@ export default class Breakdown extends Component {
       }
       if(this.getVTS(sym)) dets.strat = VTS[this.getVTS(sym)].label
       const day = moment(history.meta.start_date, 'L');
-      while(day.isSameOrBefore(props.activeDates[1], 'days')) {
+      while(day.isSameOrBefore(this.props.activeDates[1], 'days')) {
         const data = history[day.format('L')];
         if(!data) {
           day.add(1, 'days');
@@ -121,7 +119,7 @@ export default class Breakdown extends Component {
           }
         }
         
-        if(day.isSame(props.activeDates[1], 'days')) {
+        if(day.isSame(this.props.activeDates[1], 'days')) {
           if(Object.keys(data.positions).includes(sym)) {
             const currData = data.positions[sym];
             dets.sells += currData.shares * currData.c;

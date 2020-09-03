@@ -21,46 +21,60 @@ export default class Balances extends Component {
   state = {};
   meta = {}
 
-  componentWillReceiveProps = props => {
+  componentDidUpdate = prevProps => {
+    const { balance, ytd, pl } = this.refs;
+    // set initial data vals
+    document.getElementById('balances').querySelectorAll('[data-val]').forEach(el => {
+      if(getNumberProperties(el.getAttribute('data-val')).valid) return;
+      el.setAttribute('data-val', el.textContent);
+    })
+
     // ANIMATE TRANSITIONS
-    if(this.state.showData || this.props.mobile) return;
-    const old = getLatest(this.props.data, this.props.activeDates[1]).data,
-          latest = getLatest(props.data, props.activeDates[1]).data,
-          perc = props.dataView === '%';
+    if(this.state.showData || prevProps.mobile) return;
+    const old = getLatest(prevProps.data, prevProps.activeDates[1]).data,
+          latest = getLatest(this.props.data, this.props.activeDates[1]).data,
+          perc = this.props.dataView === '%';
           
     let shouldAnimate = false;
     if(old.adj.balance !== latest.adj.balance) shouldAnimate = true;
     if(old.ytd_contributions !== latest.ytd_contributions) shouldAnimate = true;
     if(old.adj.pl !== latest.adj.pl) shouldAnimate = true;
-    if(this.props.feeAdjustments !== props.feeAdjustments) shouldAnimate = true;
-    if(this.props.contributionAdjustments !== props.contributionAdjustments) shouldAnimate = true;
+    if(prevProps.feeAdjustments !== this.props.feeAdjustments) shouldAnimate = true;
+    if(prevProps.contributionAdjustments !== this.props.contributionAdjustments) shouldAnimate = true;
     if(shouldAnimate) {
-      const { balance, ytd, pl } = this.refs;
       const anim = {
-        balance_from: getNumberProperties(balance.textContent.replace('$','')).value,
-        ytd_from: getNumberProperties(ytd.textContent.replace(perc ? '%' : '$','')).value,
-        pl_from: getNumberProperties(pl.textContent.replace(perc ? '%' : '$','')).value,
+        balance_from: getNumberProperties([...balance.querySelectorAll('[data-val]')].map(el => el.getAttribute('data-val')).join('.')).value,
+        ytd_from: getNumberProperties(ytd.querySelector('[data-val]').getAttribute('data-val')).value,
+        pl_from: getNumberProperties([...pl.querySelectorAll('[data-val]')].map(el => el.getAttribute('data-val')).join('.')).value,
       }
+      const ytdxx = getNumberProperties(round(latest.ytd_contributions, 2)),
+          maxxx = getNumberProperties(round(this.getMaxContributions(this.props.activeDates[1]), 2)),
+          ytdRange = 100 * ytdxx.value / maxxx.value,
+          ytdPerc = round(ytdRange, 0);
       if(this.meta.valAnims) this.meta.valAnims.pause();
       this.meta.valAnims = anime({
         targets: anim, 
         balance_from: latest.adj.balance,
-        ytd_from: perc ? round(100 * latest.ytd_contributions / this.getMaxContributions(props.activeDates[1]), 0) 
+        ytd_from: perc ? round(100 * latest.ytd_contributions / this.getMaxContributions(this.props.activeDates[1]), 0) 
                   : latest.ytd_contributions,
         pl_from: perc ? latest.adj.plPerc : latest.adj.pl,
         easing: 'easeOutExpo',
         // round: 2,
         duration: 1000,
         update: () => {
-          if(props.dataView !== this.props.dataView) return;
+          if(this.props.dataView !== prevProps.dataView) return;
           if(anim.balance_from_history !== anim.balance_from) {
             const valEls = balance.querySelectorAll('[data-val]');
             const num = makeDoubleDecimal(getNumberProperties(round(anim.balance_from, 2)));
-            num.comma.split('.').forEach((n, i) => { valEls[i].innerHTML = n});
+            num.comma.split('.').forEach((n, i) => { 
+              valEls[i].innerHTML = n;
+              valEls[i].setAttribute('data-val', n);
+            });
           }
           if(anim.ytd_from_history !== anim.ytd_from) {
             const num = getNumberProperties(round(anim.ytd_from, 0));
             ytd.querySelector('[data-val]').innerHTML = num.comma;
+            ytd.querySelector('[data-val]').setAttribute('data-val', num.comma)
           }
           if(anim.pl_from_history !== anim.pl_from) {
             if(perc) {
@@ -68,10 +82,14 @@ export default class Balances extends Component {
               if(Math.abs(latest.adj.plPerc) >= 1) num = round(num, 1);
               if(Math.abs(latest.adj.plPerc) >= 10) num = round(num, 0);
               pl.querySelector('[data-val]').innerHTML = num;
+              pl.querySelector('[data-val]').setAttribute('data-val', num)
             } else {
               const num = makeDoubleDecimal(getNumberProperties(round(anim.pl_from, 2)));
               const valEls = pl.querySelectorAll('[data-val]');
-              num.comma.split('.').forEach((n, i) => { valEls[i].innerHTML = n});
+              num.comma.split('.').forEach((n, i) => { 
+                valEls[i].innerHTML = n;
+                valEls[i].setAttribute('data-val', n);
+              });
             }
           }
           anim.balance_from_history = anim.balance_from;
@@ -123,7 +141,6 @@ export default class Balances extends Component {
       const days = activeDates[1].diff(start, 'days'),
             months = Math.floor(days/30, 0),
             years = Math.floor(months/12, 0);
-      console.log(start, days, months, years)
       if(days <= 31) return `${days} day${days !== 1 ? 's' : ''}`;
       if(months <= 12) return `${months} month${months !== 1 ? 's' : ''}`;
       let text = `${years} year${years !== 1 ? 's' : ''}`;
