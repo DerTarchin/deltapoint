@@ -9,7 +9,8 @@ import {
   colorMap,
   makeDoubleDecimal,
   formatMoney,
-  getLatest
+  getLatest,
+  shouldUpdate
 } from '../utils';
 import { 
   threedot,
@@ -20,6 +21,8 @@ require('./Balances.css');
 export default class Balances extends Component {
   state = {};
   meta = {}
+
+  shouldComponentUpdate = p => shouldUpdate(p, this.props)
 
   componentDidUpdate = prevProps => {
     const { balance, ytd, pl } = this.refs;
@@ -159,7 +162,7 @@ export default class Balances extends Component {
         >
           {
             mobile ? null :
-            <div className="data-toggle" onClick={e => this.setState({showData: !showData})}>{threedot}</div>
+            <div className="data-toggle" onClick={e => this.setState({showData: !showData})}>{showData ? <span>+</span> : threedot}</div>
           }
           <div className="header">
             <div className="title">Balances</div>

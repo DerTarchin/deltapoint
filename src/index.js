@@ -261,7 +261,7 @@ class App extends Component {
       contributionAdjustments: this.state.contributionAdjustments,
       onSettingsChange: this.onSettingsChange,
     }
-    console.log('rendering...')
+
     return (
       <div 
         className={`app ${isMobile ? 'mobile' : ''} ${MOBILE_DEV ? 'dev' : ''}`} 

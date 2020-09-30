@@ -7,7 +7,8 @@ import {
   Volatility, 
   Breakdown, 
   Charts,
-  DateScrubber
+  DateScrubber,
+  History,
 } from './components';
 import {
   frmt,
@@ -26,6 +27,8 @@ export default class Interface extends Component {
   state = {
     headerIndex: 0,
     scrubberEnd: this.props.lastDay,
+    showHelp: false,
+    showHistory: false,
   }
   meta = {}
 
@@ -171,13 +174,17 @@ export default class Interface extends Component {
         if(this.state.headerIndex) this.changeHeader();
         onDateChange('opt', 3);
         return;
+      case 'Slash':
+        this.setState({ showHelp: !this.state.showHelp });
+      case 'KeyH':
+        this.setState({ showHistory: !this.state.showHistory });
       default: return;
     }
   }
 
   changeHeader = e => {
     const newState = {
-      headerIndex: (this.state.headerIndex + 1) % 2
+      headerIndex: (this.state.headerIndex + 1) % 3
     }
     if(newState.headerIndex === 1) {
       this.meta.weekdays = null;
@@ -282,8 +289,13 @@ export default class Interface extends Component {
                 </ul>
               </div>
             </section>
+
             <section id="header-cal">
               <DateScrubber {...this.props} headerIndex={headerIndex} />
+            </section>
+
+            <section id="header-btns">
+              <div>hello world</div>
             </section>
           </div>
           <div

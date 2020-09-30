@@ -12,7 +12,8 @@ import {
   constrain,
   getLatest,
   colorMap,
-  getColorProperties
+  getColorProperties,
+  shouldUpdate,
 } from '../utils';
 
 require('./Portfolio.css');
@@ -24,6 +25,8 @@ export default class Portfolio extends Component {
   componentWillMount = () => {
     this.calcData();
   }
+
+  shouldComponentUpdate = p => shouldUpdate(p, this.props)
 
   componentDidUpdate = prevProps => {
     // check if data changed

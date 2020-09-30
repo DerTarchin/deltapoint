@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import moment from 'moment';
-import { p5map, getLatest } from '../utils';
+import { p5map, getLatest, shouldUpdate } from '../utils';
 
 require('./Volatility.css');
 
@@ -13,6 +13,8 @@ export default class Volatility extends Component {
   componentWillMount = () => {
     this.calcData();
   }
+
+  shouldComponentUpdate = p => shouldUpdate(p, this.props)
 
   componentDidUpdate = prevProps => {
     // check if data changed

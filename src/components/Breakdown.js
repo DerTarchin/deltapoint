@@ -10,7 +10,11 @@ import {
   constrain,
   getLatest,
   formatMoney,
+  shouldUpdate,
 } from '../utils';
+import { 
+  threedot,
+} from '../utils/icons';
 
 require('./Breakdown.css');
 
@@ -66,6 +70,12 @@ export default class Breakdown extends Component {
   componentWillMount = () => {
     window.addEventListener('resize', this.resizeGraphs);
     this.calcTradeDetails();
+  }
+
+  shouldComponentUpdate = p => shouldUpdate(p, this.props)
+
+  componentDidMount = () => {
+    this.resizeGraphs();
   }
 
   componentDidUpdate = prevProps => {
@@ -318,7 +328,7 @@ export default class Breakdown extends Component {
                   data-type={pos}
                   className={`key ${active ? 'active' : ''}`} 
                   key={text}
-                  onClick={e => this.setState({ key: pos === key ? null : pos, showData: true, slide: 1 })}
+                  onClick={e => this.setState({ key: pos === key ? null : pos, showData: true, slide: 0 })}
                 >
                   <div className="icon" style={pos === 'cash' ? { visibility: 'hidden' } : null}>
                     <div style={{
@@ -342,8 +352,29 @@ export default class Breakdown extends Component {
     const renderSlides = () => {
       return <div className="data">
         <div className="slides" style={{ transform: `translateX(${-100 * this.state.slide}%)`}}>
-          <div className="slide">test</div>
-          <div className="slide">test2</div>
+          <div className="slide">
+            {
+              Object.keys(latest.positions).map(key => {
+                const pos = latest.positions[key];
+                const pl = getNumberProperties(round((pos.c - pos.avg) * pos.shares, 2)).comma,
+                      plPercVal = (pos.c - pos.avg) / pos.avg * 100,
+                      plPerc = round(plPercVal,
+                               Math.abs(plPercVal) < 1 ? 2 :
+                               Math.abs(plPercVal) < 10 ? 1 : 0),
+                      isNeg = plPercVal < 0;
+                return <div className="position" key={key}>
+                  <div className="sym">{key}</div>
+                  <div>
+                    <div className="pl" style={{ color: colorMap[isNeg ? 'other' : 'tactical']}}>${formatMoney(pl, 2)}</div>
+                    <div className="perc" style={{ background: colorMap[isNeg ? 'other' : 'tactical']}}>{plPerc}%</div>
+                  </div>
+                </div>
+              })
+            }
+          </div>
+          <div className="slide">
+            this slide will include details on each VTS strategy: historical performance, current positions and % allocation (planned vs actual).
+          </div>
         </div>
       </div>
     }
@@ -351,12 +382,15 @@ export default class Breakdown extends Component {
     return (
       <div className="tile-container" id="breakdown">
         <div className={`tile ${showData ? 'show-data' : ''}`}>
+          {
+            mobile ? null :
+            <div className="data-toggle" onClick={e => this.setState({showData: !showData})}>{showData ? <span>+</span> : threedot}</div>
+          }
           <div className="header">
             <div className="title">Positions</div>
           </div>
-          <div className="data-toggle" onClick={e => this.setState({ showData: false })}><span>+</span></div>
           <div className="body" ref="body">
-            <div className="space main" ref="graphspace" onClick={mobile ? e => this.setState({ showData: true, slide: 0 }) : null}>
+            <div className="space main" ref="graphspace" onClick={mobile ? e => this.setState({ showData: !showData, slide: 0 }) : null}>
               <div className="radial-graphs square" ref="graphs">
                 <svg ref="svg">
                   <defs>

@@ -111,6 +111,7 @@
   height: 2em;
   width: 2em;
   cursor: pointer;
+  user-select: none;
   transition: transform .1s, opacity .2s;
 
   display: flex;
@@ -131,6 +132,15 @@
   fill: hsla(220, 39%, 65%, .8);
   height: 100%;
   width: 100%;
+}
+.tile .data-toggle span {
+  font-size: 2em;
+  display: block;
+  transform: rotate(45deg);
+  color: hsla(220, 39%, 65%, .8);
+}
+.tile .data-toggle:hover span {
+  color: white;
 }
 
 @media only screen and (max-width: 767px) {
