@@ -8,6 +8,10 @@
   flex-direction: column;
 }
 
+.interface.blur .interface-content {
+  filter: blur(5px);
+}
+
 .interface > .bg {
   display: none;
   pointer-events: none;
@@ -25,6 +29,7 @@
   width: 100%;
   flex-grow: 1;
   display: flex;
+  transition: blur .35s;
 }
 
 .tile-col { width: 50% }

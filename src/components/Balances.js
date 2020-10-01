@@ -22,7 +22,7 @@ export default class Balances extends Component {
   state = {};
   meta = {}
 
-  shouldComponentUpdate = p => shouldUpdate(p, this.props)
+  shouldComponentUpdate = shouldUpdate.bind(this, this)
 
   componentDidUpdate = prevProps => {
     const { balance, ytd, pl } = this.refs;

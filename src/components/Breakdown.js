@@ -72,7 +72,7 @@ export default class Breakdown extends Component {
     this.calcTradeDetails();
   }
 
-  shouldComponentUpdate = p => shouldUpdate(p, this.props)
+  shouldComponentUpdate = shouldUpdate.bind(this, this)
 
   componentDidMount = () => {
     this.resizeGraphs();

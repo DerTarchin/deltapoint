@@ -133,6 +133,15 @@ export default class Interface extends Component {
 
   handleKey = e => {
     const { onSettingsChange, onDateChange } = this.props;
+
+    if(e.code === 'Slash') this.setState({ showHelp: !this.state.showHelp });
+    else if(e.code === 'KeyH') this.setState({ showHistory: !this.state.showHistory });
+    // do not let any others take over if a popup is active
+    else if(this.state.showHelp || this.state.showHistory) {
+      if(e.code === 'Escape') this.setState({ showHelp: false, showHistory: false });
+      return;
+    };
+
     switch(e.code) {
       case 'Space': 
         e.preventDefault();
@@ -174,10 +183,6 @@ export default class Interface extends Component {
         if(this.state.headerIndex) this.changeHeader();
         onDateChange('opt', 3);
         return;
-      case 'Slash':
-        this.setState({ showHelp: !this.state.showHelp });
-      case 'KeyH':
-        this.setState({ showHistory: !this.state.showHistory });
       default: return;
     }
   }
@@ -231,7 +236,7 @@ export default class Interface extends Component {
     } = this.props;
 
     return (
-      <div className="interface">
+      <div className={`interface ${this.state.showHelp || this.state.showHistory ? 'blur' : ''}`}>
         <div className="bg" />
         
         <div ref="header" className="interface-header">
@@ -315,6 +320,8 @@ export default class Interface extends Component {
             <Charts {...this.props} />
           </section>
         </div>
+
+        <History show={this.state.showHistory} history={this.props.history} />
       </div>
     )
   }

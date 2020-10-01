@@ -114,7 +114,10 @@ const getLatest = (data, date, up) => {
 const isNull = (val, ignoreQuotes) => !(val !== undefined && val !== null && (ignoreQuotes || val !== ''));
 
 // calcs if component props changed, ignoring ref changes (1-level deep only)
-const shouldUpdate = (next, curr) => Object.keys(next).some(key => next[key] !== curr[key]);
+const shouldUpdate = (component, nextProps, nextState) => {
+  if(nextState !== component.state) return true;
+  return Object.keys(nextProps).some(key => nextProps[key] !== component.props[key]);
+}
 
 export {
   frmt, 

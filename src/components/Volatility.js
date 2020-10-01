@@ -14,7 +14,7 @@ export default class Volatility extends Component {
     this.calcData();
   }
 
-  shouldComponentUpdate = p => shouldUpdate(p, this.props)
+  shouldComponentUpdate = shouldUpdate.bind(this, this)
 
   componentDidUpdate = prevProps => {
     // check if data changed
