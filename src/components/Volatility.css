@@ -27,9 +27,9 @@
   position: absolute;
   top: 0;
   left: 4px;
-  background: rgb(182, 160, 248);
+  background: #b399ff;
   border-radius: 3px;
-  box-shadow: rgba(182, 160, 248, 0.7) 0px 0px 7px 0px;
+  box-shadow: rgba(179, 153, 255, 0.7) 0px 0px 7px 0px;
 }
 #volatility .bar:first-child {
   width: 10px;

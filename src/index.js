@@ -137,6 +137,9 @@ class App extends Component {
       d.end = lastDay;
     });
 
+    // sort symbols_traded in meta
+    acctData.meta.symbols_traded = acctData.meta.symbols_traded.sort((a,b) => a < b ? -1 : 1)
+
     // apply adjustments
     this.adjData();
 

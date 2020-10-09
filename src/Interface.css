@@ -147,6 +147,9 @@
 .tile .data-toggle:hover span {
   color: white;
 }
+.tile .data-toggle #threedot {
+  transform: rotate(90deg);
+}
 
 @media only screen and (max-width: 767px) {
   .app:not(.mobile) .interface-content { 
@@ -256,7 +259,7 @@
   font-size: 1.2em;
 }
 
-.interface-header ul {
+ul[class*="-opts"] {
   margin: 0;
   padding: 0;
   display: flex;
@@ -266,36 +269,37 @@
 }
 ul.date-opts { margin-right: -12px }
 ul.app-opts { margin-left: -12px }
-.interface-header ul li {
+ul[class*="-opts"] li {
   margin: 0 2px;
   padding: 6px 12px; /* .5em 1em */
   opacity: .5;
   font-weight: 500;
+  cursor: pointer;
 }
-.interface-header ul li.icon {
+ul[class*="-opts"] li.icon {
   font-size: 1.2em;
 }
-.interface-header ul li.single {
+ul[class*="-opts"] li.single {
   transition: background .1s;
   border-radius: .5em;
 }
-.interface-header ul li:not(.active):hover,
-.interface-header ul li:not(.active):hover span { 
+ul[class*="-opts"] li:not(.active):hover,
+ul[class*="-opts"] li:not(.active):hover span { 
   opacity: 1;
 }
-.interface-header ul li.active,
-.interface-header ul li.active span,
+ul[class*="-opts"] li.active,
+ul[class*="-opts"] li.active span,
 .interface-header .active > .clickitem { 
   opacity: 1 
 }
-.interface-header ul li.single.active {
+ul[class*="-opts"] li.single.active {
   background: rgba(255,255,255,.15);
 }
-.interface-header ul .divider {
+ul[class*="-opts"] .divider {
   pointer-events: none;
   padding-right: 0;
 }
-.interface-header ul span {
+ul[class*="-opts"] span {
   opacity: .8;
   margin-left: 2px;
 }
@@ -316,6 +320,42 @@ ul.app-opts { margin-left: -12px }
 }
 #header-cal {
   padding-left: 2.2em; /* same width as menu icon */
+}
+
+.percent-tag {
+  display: inline-flex;
+  border-radius: 100px;
+  align-items: center;
+  font-size: 1em;
+  line-height: 1em;
+  height: 1em;
+  padding: 0 10px;
+  font-weight: 400;
+  
+  background: rgba(102, 255, 133, 0.2);
+  color: #66ff85;
+}
+.percent-tag svg {
+  width: .8em;
+  height: auto;
+  transform: translateY(-1px) rotate(-45deg);
+  margin-right: 5px;
+}
+.percent-tag svg {
+  width: .8em;
+  height: auto;
+  transform: translateY(-1px) rotate(-45deg);
+  margin-right: 5px;
+  
+  fill: #66ff85;
+}
+.percent-tag.neg {
+  background: rgba(255, 102, 179, 0.2);
+  color: #ff66b3;
+}
+.percent-tag.neg svg {
+  fill: #ff66b3;
+  transform: translateY(-1px) rotate(45deg);
 }
 
 

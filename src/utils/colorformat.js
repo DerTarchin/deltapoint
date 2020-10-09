@@ -1,4 +1,15 @@
-const getColorProperties = hex => {
+export const colorMap = {
+  tactical: '#66ff85', // green,
+  conservative: '#4dffff', // blue 
+  aggressive: '#4d9dff', // dark blue faded
+  // used to be "cash"
+  rotation: '#b399ff', // lilac
+  other: '#ff66b3', // pink
+  cash: '#445db1', // same as bg for now
+  bg: '#445db1', // dark blue faded
+}
+
+export const getColorProperties = hex => {
   const toRGB = hex => {
     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
@@ -38,16 +49,10 @@ const getColorProperties = hex => {
   }
 }
 
-const getAlpha = val => parseFloat(val.split(',')[val.split(',').length-1].replace(')',''))
+export const getAlpha = val => parseFloat(val.split(',')[val.split(',').length-1].replace(')',''))
 
-const glow = colorProps => {
+export const glow = colorProps => {
   const {r, g, b} = colorProps;
   const color = colorProps.rgbStr(r,g,b,.7);
   return `0px 0px 7px 0px ${color}`;
-}
-
-export {
-  getAlpha,
-  getColorProperties,
-  glow
 }

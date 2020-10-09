@@ -245,7 +245,7 @@ export default class Balances extends Component {
                   <tr className="data-row">
                     <td>${balance.comma}</td>
                     <td>${ytd.comma}</td>
-                    <td>${formatMoney(latest.total_fees, 2)}</td>
+                    <td>${formatMoney(round(latest.total_fees, 2), 2)}</td>
                   </tr>
 
                   <tr className="label-row">

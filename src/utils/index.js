@@ -18,9 +18,14 @@ import {
 } from './numformat';
 import {
   getColorProperties,
+  colorMap,
   getAlpha,
   glow
 } from './colorformat';
+import {
+  getLatest,
+  generateAggs
+} from './data';
 
 const pagePos = el => {
   const pos = {x: 0, y: 0};
@@ -85,31 +90,7 @@ const sepFrmt = (start, end) => {
 
 const p5map = (val, inMin, inMax, outMin, outMax) => outMin + (outMax - outMin) * ((val - inMin) / (inMax - inMin))
 
-const colorMap = {
-  tactical: '#71f48b', // hsl(132, 85%, 70%) = green,
-  conservative: '#5af2f2', // hsl(180, 85%, 65%) = blue 
-  aggressive: '#559ef6', // hsl(213, 90%, 65%) = dark blue faded
-  // used to be "cash"
-  rotation: '#b6a0f8', // hsl(255, 85%, 80%) = lilac
-  other: '#f688de', // hsl(313, 85%, 75%) = pink
-  cash: '#445db1', // same as bg for now
-  bg: '#445db1', // hsl(226, 44%, 48%) = dark blue faded
-}
-
 const constrain = (val, min, max) => val < min ? min : val > max ? max : val
-
-// must be a valid date within the data otherwise an infinite loop will ensue
-const getLatest = (data, date, up) => {
-  let latest = {}, day = date.clone();
-  while(!latest.data) {
-    const datestr = day.format('L');
-    if(data[datestr]) {
-      latest = { data: data[datestr], date: day.clone() };
-    }
-    day[up ? 'add' : 'subtract'](1, 'days');
-  }
-  return latest;
-}
 
 const isNull = (val, ignoreQuotes) => !(val !== undefined && val !== null && (ignoreQuotes || val !== ''));
 
@@ -119,7 +100,10 @@ const shouldUpdate = (component, nextProps, nextState) => {
   return Object.keys(nextProps).some(key => nextProps[key] !== component.props[key]);
 }
 
+const cap = str => !str ? str : str.charAt(0).toUpperCase() + str.slice(1);
+
 export {
+  cap,
   frmt, 
   isEsc,
   isNull,
@@ -130,6 +114,7 @@ export {
   getLatest,
   isBackspace,
   shouldUpdate,
+  generateAggs,
   propagationPath,
   splitNumberSuffix,
   getColorProperties,

@@ -22,6 +22,9 @@ hsla(220, 39%, 65%, .8) = practically opacity white but blue
 ::selection {
   background: rgba(255,255,255,.1);
 }
+.hide-scroll::-webkit-scrollbar {
+  display: none;
+}
 
 html {
   background: #057378;

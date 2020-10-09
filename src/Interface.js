@@ -321,7 +321,11 @@ export default class Interface extends Component {
           </section>
         </div>
 
-        <History show={this.state.showHistory} history={this.props.history} />
+        <History 
+          show={this.state.showHistory} 
+          history={this.props.history} 
+          close={e => this.setState({ showHistory: false })}
+        />
       </div>
     )
   }
