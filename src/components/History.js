@@ -6,11 +6,12 @@ import {
   glow,
   round,
   colorMap,
+  getLatest,
   formatMoney,
-  getNumberProperties,
-  getColorProperties,
-  generateAggs,
   shouldUpdate,
+  generateAggs,
+  getColorProperties,
+  getNumberProperties,
 } from '../utils';
 import {
   thinsearch,
@@ -52,18 +53,20 @@ export default class Breakdown extends Component {
       if(this.props.show) {
         setTimeout(e => this.refs.input.focus(), 50);
         setTimeout(this.setAggs, 300);
+        window.addEventListener('keydown', this.handleKey);
       } else {
         this.refs.input.value = '';
         setTimeout(e => {
           if(!this.props.show) this.setState({ search: '', selectedSymbol: null, toggledYears: [] });
         }, 350);
+        window.removeEventListener('keydown', this.handleKey);
       }
     }
 
     // if search bar is used, auto-scroll the symbol selector to the highlighted symbol
     if(
       (prevState.search !== this.state.search && !this.state.selectedSymbol && this.state.search) ||
-      (!this.state.search && this.state.selectedSymbol && !prevState.selectedSymbol)
+      (!this.state.search && this.state.selectedSymbol && prevState.selectedSymbol !== this.state.selectedSymbol)
     ) {
       const sym = this.state.selectedSymbol || this.props.history.meta.symbols_traded.find(s => s.startsWith(this.state.search));
       if(sym) {
@@ -86,6 +89,12 @@ export default class Breakdown extends Component {
     }
   }
 
+  handleKey = e => {
+    if(e.key === 'Escape') return;
+    e.stopPropagation();
+    if(this.refs.input) this.refs.input.focus();
+  }
+
   setAggs = () => {
     if(this.meta.aggs) return;
     this.meta.aggs = generateAggs(this.props);
@@ -102,6 +111,9 @@ export default class Breakdown extends Component {
       transfer: colorMap.aggressive,
       dividend: colorMap.conservative
     }
+    const latest = this.props.show ? getLatest(this.props.history) : {},
+          lData = (latest.data || {}).positions || {};
+          console.log(latest, this.props.history)
 
     const rows = this.meta.transactions.filter(t => {
       if(filter.length && !filter.includes(t.type)) return false;
@@ -117,33 +129,40 @@ export default class Breakdown extends Component {
       const sym = this.state.selectedSymbol || (search && this.props.history.meta.symbols_traded.find(s => s.startsWith(search)));
       const stockOpts = <ul key="opts" className="stock-opts hide-scroll">
         {
-          this.props.history.meta.symbols_traded.reverse().map(sym => {
+          this.props.history.meta.symbols_traded.sort((a,b) => a < b ? -1 : 1).map(sym => {
             const selected = sym === this.state.selectedSymbol;
             return <li 
               key={sym} 
               data-sym={sym} 
               className={selected ? 'single active' : null} 
+              title={lData[sym] ? 'Actively traded' : null}
               onClick={e => {
                 if(sym === this.state.selectedSymbol) return;
-                if(this.refs.value) this.refs.input.value = '';
+                if(this.refs.input) this.refs.input.value = '';
                 this.setState({ selectedSymbol: sym, search: '', toggledYears: [] });
               }}
-            >{sym.toUpperCase()}</li>
+            >
+              { sym.toUpperCase() }
+              { lData[sym] && <div className="active-dot" /> }
+            </li>
           })
         }
       </ul>
 
       if(sym) {
         const aggs = this.meta.aggs[sym];
-        console.log(aggs);
-        let title = <div className="sym">{sym.toUpperCase()}</div>;
+        const activeDot = <div className="active-dot" style={{ background: colorMap.conservative, boxShadow: glow(getColorProperties(colorMap.conservative)) }} title="Actively traded stock" />
+        let title = <div className="sym"> { sym.toUpperCase() }{ lData[sym] && activeDot } </div>;
         if(search && search !== sym) {
           title = <div className="sym">
-            {search.toUpperCase()}<span>{sym.replace(search, '').toUpperCase()}</span>
+            { search.toUpperCase() }<span>{ sym.replace(search, '').toUpperCase() }</span>
+            { lData[sym] && activeDot }
           </div>
-        }
+        };
         let small = '' + round(Math.abs(aggs.total_pl % 1) * 100);
         if(small.length === 1) small = '0' + small;
+        let currPL = lData[sym] && formatMoney((lData[sym].c - lData[sym].avg) * lData[sym].shares), 
+            currPLPerc = lData[sym] && PERC((lData[sym].c - lData[sym].avg) / lData[sym].avg * 100);
         return [
           <div className="details-content hide-scroll" key={sym}>
             { title }
@@ -155,6 +174,51 @@ export default class Breakdown extends Component {
                 { PERC(aggs.total_pl_perc) }%
               </div>
             </div>
+            {
+              lData[sym] && aggs.current && 
+              <div className="metrics active" style={{ borderColor: colorMap.conservative, boxShadow: glow(getColorProperties(colorMap.conservative)) }}>
+                <div className="metric double">
+                  <div className="header">P/L</div>
+                  <div className="value">{currPL} <span className="mute">|</span> {currPLPerc}%</div>
+                </div>
+                <div className="metric double" title={`${aggs.current.days_in_trade} day${aggs.current.days_in_trade === 1 ? '' : 's'}`}>
+                  <div className="header">Since</div>
+                  <div className="value">{moment(aggs.current.since).format('MMM D, YYYY')}</div>
+                </div>
+                <div className="metric">
+                  <div className="header">Avg</div>
+                  <div className="value">{formatMoney(aggs.current.avg)}</div>
+                </div>
+                <div className="metric">
+                  <div className="header">Shares</div>
+                  <div className="value">{getNumberProperties(aggs.current.shares).comma}</div>
+                </div>
+                <div className="metric">
+                  <div className="header">Max Gain</div>
+                  <div className="value">{PERC(aggs.current.max_upside)}%</div>
+                </div>
+                <div className="metric">
+                  <div className="header">Max Loss</div>
+                  <div className="value">{PERC(aggs.current.max_drawdown)}%</div>
+                </div>
+                <div className="metric">
+                  <div className="header">Open</div>
+                  <div className="value">{formatMoney(aggs.current.o)}</div>
+                </div>
+                <div className="metric">
+                  <div className="header">High</div>
+                  <div className="value">{formatMoney(aggs.current.h)}</div>
+                </div>
+                <div className="metric">
+                  <div className="header">Low</div>
+                  <div className="value">{formatMoney(aggs.current.l)}</div>
+                </div>
+                <div className="metric">
+                  <div className="header">Close</div>
+                  <div className="value">{formatMoney(aggs.current.c)}</div>
+                </div>
+              </div>
+            }
             <div className="divider" />
             <div className="metrics">
               <div className="metric">
@@ -261,8 +325,22 @@ export default class Breakdown extends Component {
                           </div>
                         </div>
                         <div key="trades" className="trades">
+                          { 
+                            lData[sym] && latest.date && (latest.date.year() + '') === year && (
+                              <div key={i} className="trade">
+                                <div>Current Position</div>
+                                <div>
+                                  <span>{currPL}</span>
+                                  <div className={`percent percent-tag ${currPLPerc < 0 ? 'neg' : 'pos'}`}>
+                                    { arrow }
+                                    { currPLPerc }%
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          }
                           {
-                            (yaggs.sell_trades || []).reverse().map((trade,i) => {
+                            [...(yaggs.sell_trades || [])].reverse().map((trade,i) => {
                               return <div key={i} className="trade">
                                 <div>{moment(trade[0].date).format('L')}</div>
                                 <div>
@@ -336,12 +414,16 @@ export default class Breakdown extends Component {
                 }
               </div>
               {
-                rows.reverse().map((t,i) => {
+                [...rows].reverse().map((t,i) => {
                   let text = t.text.toLowerCase();
                   this.props.history.meta.symbols_traded.forEach(sym => {
                     text = text.replace(sym, sym.toUpperCase())
-                  })
-                  return <div key={i} className="row" title={t.text}>
+                  });
+                  return <div key={i} className={`row ${t.symbol ? 'clickable' : ''}`} title={t.text} onClick={t.symbol ? e => {
+                    if(t.symbol === this.state.selectedSymbol) return;
+                    if(this.refs.input) this.refs.input.value = '';
+                    this.setState({ selectedSymbol: t.symbol, search: '', toggledYears: [] });
+                  } : null}>
                     <div 
                       className="banner" 
                       style={{ 
@@ -352,11 +434,11 @@ export default class Breakdown extends Component {
                     <div className="row-content hide-scroll">
                       <div className="meta">
                         <small title={t.date}>{moment(t.date).format('MMM D, YYYY')}</small>
-                        <p>{cap(t.type === 'adj' ? 'adjustment' : t.type)} {(['buy','sell'].includes(t.type) && t.symbol || '').toUpperCase()}</p>
+                        <p>{cap(t.type === 'adj' ? 'adjustment' : t.type)} {((['buy','sell'].includes(t.type) && t.symbol) || '').toUpperCase()}</p>
                       </div>
                       <div className="meta">
                         <small>Amount</small>
-                        <p>{formatMoney(Math.abs(t.amount), 2)}</p>
+                        <p>{formatMoney(t.type === 'adj' ? t.amount : Math.abs(t.amount), 2)}</p>
                       </div>
                       {
                         ['buy','sell'].includes(t.type) && [

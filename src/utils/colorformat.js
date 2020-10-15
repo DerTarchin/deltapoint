@@ -51,8 +51,12 @@ export const getColorProperties = hex => {
 
 export const getAlpha = val => parseFloat(val.split(',')[val.split(',').length-1].replace(')',''))
 
-export const glow = colorProps => {
+export const glow = (colorProps, type="outside") => {
   const {r, g, b} = colorProps;
   const color = colorProps.rgbStr(r,g,b,.7);
-  return `0px 0px 7px 0px ${color}`;
+  const outer = `0px 0px 7px 0px ${color}`;
+  const inner = `inset 0px 0px 7px 0px ${color}`;
+  if(type === 'both') return `${inner}, ${outer}`;
+  if(type === 'inside') return inner;
+  return outer;
 }

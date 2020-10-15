@@ -110,6 +110,10 @@
   padding-left: 10px;
   position: relative;
   line-height: 1em;
+  cursor: default;
+}
+.history .row.clickable {
+  cursor: pointer;
 }
 .history .row .row-content {
   padding: 10px 30px;
@@ -151,7 +155,7 @@
 .history .row p {
   margin: 0;
 }
-.history .row .mute {
+.history .mute {
   color: hsla(220, 39%, 80%, .8);
 }
 .history .footer {
@@ -198,6 +202,15 @@
 .history .details .sym span {
   color: hsla(220, 39%, 80%, .8);
 }
+.history .details .sym .active-dot {
+  height: 8px;
+  width: 8px;
+  border-radius: 50%;
+  background: white;
+  display: inline-block;
+  margin-left: 10px;
+  transform: translateY(-.55em);
+}
 .history .details .balance {
   position: relative;
   font-size: 35px;
@@ -224,15 +237,38 @@
 .history .details .metrics {
   margin-bottom: -20px;
 }
+.history .details .metrics.active {
+  margin-bottom: 0;
+  margin-top: 20px;
+  background: rgba(0,0,30,.1);
+  border: 2px solid white;
+  border: none;
+  border-radius: 10px;
+  padding: 20px;
+  padding-top: 17px;
+  padding-bottom: 0;
+}
 .history .details .metric {
   display: inline-block;
   padding-right: 10px;
   width: 30%;
   margin-bottom: 20px;
 }
-.history .details .metric:nth-of-type(3n) {
+.history .details .metrics.active .metric {
+  width: 25%;
+}
+.history .details .metrics.active .metric.double {
+  width: 50%;
+  padding-right: 0;
+}
+.history .details .metrics:not(.active) .metric:nth-of-type(3n) {
   padding-right: 0;
   width: 40%;
+}
+.history .details .metrics.active .mute {
+  display: inline-block;
+  margin: 0 2px;
+  opacity: .5;
 }
 .history .details .metric .header {
   font-size: 12px;
@@ -262,6 +298,9 @@
 .history .details .year .toggle:not(.disabled):hover {
   cursor: pointer;
   background: rgba(0,0,30,.1);
+}
+.history .details .year .toggle.disabled {
+  color: hsla(220, 39%, 80%, .8);
 }
 .history .details .year .extended {
   margin-top: 40px;
@@ -304,6 +343,15 @@
 .history .stock-opts li {
   display: inline-block;
   user-select: none;
+}
+.history .stock-opts li .active-dot {
+  height: 4px;
+  width: 4px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-left: 2px;
+  background: white;
+  transform: translateY(-.44em);
 }
 .history .details > .stock-opts {
   display: block;
