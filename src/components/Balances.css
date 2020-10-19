@@ -61,7 +61,7 @@
 }
 #balances .stat .title {
   font-size: 1.8vh;
-  color: hsla(220, 39%, 65%, .8);
+  color: hsla(220, 39%, 80%, .8);
 }
 #balances .stat .range {
   margin: 7px 0;
@@ -80,7 +80,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 1.2vh;
-  color: hsla(220, 39%, 65%, .8);
+  color: hsla(220, 39%, 80%, .8);
   text-transform: uppercase;
 }
 #balances .stat:hover .details,

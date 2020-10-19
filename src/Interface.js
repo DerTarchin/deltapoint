@@ -219,6 +219,8 @@ export default class Interface extends Component {
     )
   }
 
+  hideHistory = e => this.setState({ showHistory: false })
+
   render = () => {
     const { 
       headerIndex
@@ -309,7 +311,7 @@ export default class Interface extends Component {
           ><div className="clickitem">{threedot}</div></div>
         </div>
 
-        <div className="interface-content">
+        <div className="interface-content hide-scroll">
           <section className="tile-col left">
             <Portfolio {...this.props} />
             <Balances {...this.props} />
@@ -324,7 +326,7 @@ export default class Interface extends Component {
         <History 
           show={this.state.showHistory} 
           history={this.props.history} 
-          close={e => this.setState({ showHistory: false })}
+          close={this.hideHistory}
         />
       </div>
     )

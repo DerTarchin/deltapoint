@@ -7,7 +7,8 @@ import {
   Balances, 
   Volatility, 
   Breakdown, 
-  Charts 
+  Charts,
+  History
 } from './components';
 import {
   frmt,
@@ -17,6 +18,7 @@ import {
 } from './utils';
 import {
   angle,
+  history,
 } from './utils/icons';
 
 require('./Interface.css');
@@ -26,11 +28,13 @@ const TILE_INTRO_DELAY = 200;
 const MENU_BG = 0.6;
 
 export default class InterfaceMobile extends Component {
-  state = {};
+  state = {
+    showHistory: false,
+  };
   meta = {
     swipe: {
       acctIndex: 1,
-      posIndex: 1
+      posIndex: 0
     }
   }
 
@@ -114,18 +118,18 @@ export default class InterfaceMobile extends Component {
     this.meta.tileAnime = anime.timeline().add({
       targets: [
         '#balances',
-        '#charts',
+        '#breakdown',
       ],
       opacity: [0,1],
       marginTop: [20,0],
       easing: 'easeInOutSine',
       duration: TILE_INTRO_DURATION,
-      delay: (el, i, l) => i * TILE_INTRO_DELAY
+      delay: (el, i, l) => 1000 + (i * TILE_INTRO_DELAY)
     }).add({
       targets: [
         '#portfolio',
-        '#volatility',
-        '#breakdown'
+        '#charts',
+        '#volatility'
       ],
       opacity: [0,1],
       offset: '-='+TILE_INTRO_DURATION,
@@ -169,6 +173,10 @@ export default class InterfaceMobile extends Component {
     }
   }
 
+  init = e => {
+
+  }
+
   moveHeaderStart = e => {
     if(!e || (!e.pageY && !e.touches)) return;
     const y = e.pageY || (e.touches[0].clientY - 20);
@@ -191,7 +199,7 @@ export default class InterfaceMobile extends Component {
   moveHeader = e => {
     const { drag } = this.meta;
     if(!drag || !e || (!e.pageY && !e.touches)) return;
-    e.preventDefault();
+    // e.preventDefault();
     const y = e.pageY || (e.touches[0].clientY - 20);
     if(y < 0) return;
     if(drag.menuOpen) { // relative to start point
@@ -254,8 +262,8 @@ export default class InterfaceMobile extends Component {
 
   showMenu = fast => {
     if(fast) {
-      this.refs.menu.style.transitionTimingFunction = 'cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-      this.refs.interface.style.transitionTimingFunction = 'cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+      this.refs.menu.style.transitionTimingFunction = 'cubic-bezier(.17,.89,.13,1.13)'; // cubic-bezier(0.175, 0.885, 0.32, 1.275)
+      this.refs.interface.style.transitionTimingFunction = 'cubic-bezier(.17,.89,.13,1.13)';
     } 
     this.refs.menu.style.transitionDuration = null; // slower, original speed
     this.refs.interface.style.transitionDuration = null;
@@ -269,8 +277,8 @@ export default class InterfaceMobile extends Component {
 
   hideMenu = fast => {
     if(fast) {
-      this.refs.menu.style.transitionTimingFunction = 'cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-      this.refs.interface.style.transitionTimingFunction = 'cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+      this.refs.menu.style.transitionTimingFunction = 'cubic-bezier(.17,.89,.13,1.13)';
+      this.refs.interface.style.transitionTimingFunction = 'cubic-bezier(.17,.89,.13,1.13)';
     }
     this.refs.menu.style.transitionDuration = null; // slower, original speed
     this.refs.interface.style.transitionDuration = null;
@@ -306,6 +314,8 @@ export default class InterfaceMobile extends Component {
     this.props.onDateChange('range', range);
   }
 
+  hideHistory = e => this.setState({ showHistory: false })
+
   render = () => {
     const dateFrom = this.props.activeDates[0],
           dateTo = this.props.activeDates[1],
@@ -315,7 +325,7 @@ export default class InterfaceMobile extends Component {
 
     return [
       <div 
-        className="interface" 
+        className={`interface ${this.state.showHistory ? 'shrink' : ''}`}
         key="interface"
         ref="interface"
         onTouchStart={this.moveHeaderStart} 
@@ -328,7 +338,12 @@ export default class InterfaceMobile extends Component {
         <div className="bg" />
 
         <div className="interface-header" ref="header" onClick={this.showMenu}>
+          <div className="quick-action" onClick={e => {
+            e.stopPropagation();
+            this.setState({ showHistory: true });
+          }}>{history}</div>
           <div className="dates">{datesRender}</div>
+          <div className="quick-action" />
         </div>
 
         <div className="interface-content" ref="content">
@@ -356,9 +371,9 @@ export default class InterfaceMobile extends Component {
         </div>
       </div>,
       <div
-        className="mobile-menu"
         ref="menu"
         key="menu"
+        className="mobile-menu"
         onTouchStart={this.moveHeaderStart} 
         onTouchMove={this.moveHeader} 
         onTouchEnd={this.moveHeaderEnd}
@@ -426,7 +441,14 @@ export default class InterfaceMobile extends Component {
           }
         </div>
         <div className="hideBanner" onClick={this.hideMenu}>{angle}</div>
-      </div>
+      </div>,
+      <History 
+        key="history"
+        show={this.state.showHistory} 
+        history={this.props.history} 
+        close={this.hideHistory}
+        mobile
+      />
     ]
   }
 

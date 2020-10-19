@@ -80,7 +80,7 @@ export default class Volatility extends Component {
             <div className="title">Volatility</div>
           </div>
           <div className="body">
-            <div className="bars">
+            <div className="bars hide-scroll">
               {
                 bars.map((bar,i) => {
                   const height = p5map(bar.range, 0, max, 0, 100) || 0;

@@ -39,6 +39,9 @@
   padding: 8px;
   transform: translate3d(0,0,0);
 }
+.mobile .tile-container {
+  opacity: 0;
+}
 
 #portfolio, #balances, #volatility { height: 33.3333333% }
 #breakdown { height: 45% }
@@ -52,12 +55,15 @@
   height: 100%;
   width: 100%;
   padding: 3vh;
-  background: rgba(0,0,30,.3);
-  box-shadow: 0px 0px 18px 0px rgba(0,0,0,0.1);
+  background: rgba(0,0,30,.4);
+  box-shadow: 0 0 16px rgba(0,0,0,0.12), 0 0 16px rgba(0,0,0,0.18);
   border-radius: 10px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+.mobile .tile-container .tile {
+  box-shadow: 0px 0px 18px 0px rgba(0,0,0,0.1);
 }
 .tile .header {
   width: 100%;
@@ -108,6 +114,9 @@
   filter: blur(30px);
   transform: translate3d(0,0,0);
 }
+.tile:not(:hover):not(.show-data) > .data-toggle {
+  display: none;
+}
 .tile .data-toggle {
   position: absolute;
   top: 3vh;
@@ -134,7 +143,7 @@
   fill: white;
 }
 .tile .data-toggle svg {
-  fill: hsla(220, 39%, 65%, .8);
+  fill: hsla(220, 39%, 80%, .8);
   height: 100%;
   width: 100%;
 }
@@ -142,7 +151,7 @@
   font-size: 2em;
   display: block;
   transform: rotate(45deg);
-  color: hsla(220, 39%, 65%, .8);
+  color: hsla(220, 39%, 80%, .8);
 }
 .tile .data-toggle:hover span {
   color: white;
@@ -174,6 +183,9 @@
   .app:not(.mobile) .interface-header .dates {
     padding-left: 0;
     text-align: left;
+  }
+  .app .tile-container .tile {
+    box-shadow: 0px 0px 18px 0px rgba(0,0,0,0.1);
   }
 }
 
@@ -363,11 +375,21 @@ ul[class*="-opts"] span {
 
 .mobile .interface { 
   user-select: none;
-  top: 0 
+  top: 0;
+  overflow: hidden;
+  transition: all .3s ease;
+}
+.mobile .interface.shrink {
+  transform: scale(.95) translateY(-5px);
+  background: rgba(0,0,30,.35);
+  border-radius: 15px;
+  transition: all .3s ease-out;
 }
 .mobile .interface-header {
   font-size: 1.1em;
-  justify-content: center;
+  align-items: center;
+  padding: 0 25px;
+
   margin-bottom: -4px;
   z-index: 10;
 }
@@ -375,10 +397,26 @@ ul[class*="-opts"] span {
   position: relative;
   padding: 0;
   font-size: 1.1em;
+  flex-grow: 1;
+  width: 100%;
 }
 .mobile .interface-header .dates span {
   opacity: .8;
   margin-left: 3px;
+}
+.mobile .interface-header .quick-action {
+  flex-shrink: 0;
+  flex-grow: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.mobile .interface-header .quick-action svg {
+  height: 100%;
+  width: auto;
+  fill: white;
 }
 
 .mobile-menu {
@@ -488,5 +526,5 @@ ul[class*="-opts"] span {
 .mobile-menu .opts .opt.active { opacity: 1 }
 .mobile-menu .opts .opt.active:before { opacity: .6 }
 
-.mobile .interface, .mobile-menu { transition: top .3s, filter .3s }
+.mobile-menu { transition: top .3s, filter .3s }
 .mobile.app { transition: background .3s }
