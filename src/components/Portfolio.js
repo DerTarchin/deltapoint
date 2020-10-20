@@ -22,8 +22,11 @@ export default class Portfolio extends Component {
   state = {};
   meta = {}
 
-  componentWillMount = () => {
+  componentDidMount = () => {
     this.calcData();
+    if(this.refs.chart) {
+      this.refs.chart.addEventListener('touchmove', e => e.stopPropagation(), { passive: false });
+    }
   }
 
   shouldComponentUpdate = shouldUpdate.bind(this, this)
@@ -82,6 +85,7 @@ export default class Portfolio extends Component {
       responsive: true,
       maintainAspectRatio: false,
       legend: false,
+      events: ['mousemove', 'mouseout', 'click', 'touchstart', 'touchmove', 'touchend'],
       elements: {
         line: {
           tension: lineTension,
@@ -245,10 +249,10 @@ export default class Portfolio extends Component {
             <div className="title">Portfolio</div>
           </div>
           <div className="body">
-            <div className="chart-wrapper">
+            <div className="chart-wrapper" ref="chart">
               {
                 chartData && chartOptions &&
-                <Line ref="chart" data={chartData} options={chartOptions} />
+                <Line data={chartData} options={chartOptions} />
               }
             </div>
           </div>

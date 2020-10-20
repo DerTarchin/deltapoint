@@ -72,7 +72,7 @@ class App extends Component {
 
   componentWillMount = () => {
     // disable overscroll on mobile
-    document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+    // document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
     window.addEventListener('orientationchange', () => this.setState({ mobileOrientation: window.orientation }), false);
   }
 

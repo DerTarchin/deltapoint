@@ -178,6 +178,9 @@ export default class History extends Component {
 
   moveWindowStart = e => {
     if(!e || (!e.pageY && !e.touches)) return;
+    // prevent drag propagation on a few items
+    if(this.getSym() && getClosestParent(e.target, '.stock-opts')) return;
+
     e.persist();
     const { x, y } = this.getXY(e);
     this.meta.drag = {
@@ -225,6 +228,7 @@ export default class History extends Component {
     drag.lastX = x;
     drag.lastY = y;
     drag.time = performance.now();
+    e.stopPropagation();
   }
 
   moveWindowEnd = e => {
@@ -249,7 +253,7 @@ export default class History extends Component {
     }
 
     delete this.meta.drag;
-    console.log(fast)
+    console.log('Fast?', fast)
   }
 
   render = () => {
@@ -659,13 +663,19 @@ export default class History extends Component {
             onMouseMove={this.moveWindow}
             onMouseUp={this.moveWindowEnd}
           >
-            <div className="search" onClick={e => {
-              if(getClosestParent(e.target, 'svg') || e.target.getAttribute('id') === 'times') {
-                this.setState({ showSymbolList: !this.state.showSymbolList, showAllTransactions: false });
-              }
-            }}>
+            <div className="search">
               { this.state.showSymbolList ? 'Stocks' : 'Transactions' }
-              { this.state.showSymbolList ? <span id="times">+</span> : thinsearch }
+              <div 
+                className="btn" 
+                onClick={e => {
+                  this.setState({ 
+                    showSymbolList: !this.state.showSymbolList, 
+                    showAllTransactions: false 
+                  });
+                }}
+              >
+                { this.state.showSymbolList ? <span>+</span> : thinsearch }
+              </div>
             </div>
             <div className="content">
               { renderTransactions() }

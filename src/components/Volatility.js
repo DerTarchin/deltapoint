@@ -10,8 +10,11 @@ export default class Volatility extends Component {
   };
   meta = {}
 
-  componentWillMount = () => {
+  componentDidMount = () => {
     this.calcData();
+    if(this.refs.bars) {
+      this.refs.bars.addEventListener('touchmove', e => e.stopPropagation(), { passive: false });
+    }
   }
 
   shouldComponentUpdate = shouldUpdate.bind(this, this)
@@ -80,7 +83,7 @@ export default class Volatility extends Component {
             <div className="title">Volatility</div>
           </div>
           <div className="body">
-            <div className="bars hide-scroll">
+            <div className="bars hide-scroll" ref="bars">
               {
                 bars.map((bar,i) => {
                   const height = p5map(bar.range, 0, max, 0, 100) || 0;
