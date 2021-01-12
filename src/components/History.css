@@ -241,7 +241,7 @@
 }
 
 .history .details {
-  width: 350px;
+  width: 360px;
   overflow-y: auto;
   overflow-x: hidden;
   flex-grow: 0;

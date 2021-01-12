@@ -44,7 +44,11 @@ export default class Volatility extends Component {
       } else {
         const datestr = date.format('L'), prevstr = prev.format('L');
 
-        const prevClose = history[prevstr].adj.balance;
+        let prevClose = history[prevstr].adj.balance;
+        // if this day includes a transfer, adjust previous close rates by that too
+        if((history[datestr].transactions || []).find(t => t.type === 'transfer')) {
+          prevClose += history[datestr].transactions.filter(t => t.type === 'transfer').reduce((t,v) => t + v.amount, 0);
+        }
         let high = history[datestr].adj.cash_balance,
             low =  history[datestr].adj.cash_balance;
 

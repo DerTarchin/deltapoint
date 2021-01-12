@@ -125,7 +125,7 @@ export default class Balances extends Component {
           max = getNumberProperties(round(this.getMaxContributions(activeDates[1]), 2)),
           ytdRange = 100 * ytd.value / max.value,
           ytdPerc = round(ytdRange, 0),
-          total = getNumberProperties(round(latest.adj.total_contributions, 2)),
+          total = getNumberProperties(round(latest.adj.total_contributions + latest.total_fees, 2)),
           pl = getNumberProperties(round(latest.adj.pl, 2)),
           plPerc = round(latest.adj.plPerc, 
                          Math.abs(latest.adj.plPerc) < 1 ? 2 :

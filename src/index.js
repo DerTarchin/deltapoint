@@ -112,7 +112,8 @@ class App extends Component {
       this.setState({ unlockError: 'Incorrect passphrase.'})
       return;
     }
-    // console.log(data, data.dertarchinroth)
+    console.log(data.dertarchinroth)
+    console.log('%cLast scraped: ' + moment(data.dertarchinroth.meta.timestamp).format('MMMM Do YYYY, h:mm:ss a'), 'font-style: italic')
 
     // parse data
     const accounts = Object.keys(data),
