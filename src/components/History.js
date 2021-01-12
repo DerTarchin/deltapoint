@@ -48,12 +48,27 @@ export default class History extends Component {
     const { history } = this.props;
     const end = moment(history.meta.last_updated, 'L'),
           day = moment(history.meta.start_date, 'L');
+    let latestVTS = history.meta.vts_rates[0], vtsIndexOf = 0, isActiveVTS;
     while(day.isSameOrBefore(end, 'days')) {
       const d = history[day.format('L')]
-      if(d && d.transactions) {
-        this.meta.transactions.push(...d.transactions);
+      // check if VTS rate needs to be updated
+      if(history.meta.vts_rates.length - 1 > vtsIndexOf && day.isSameOrAfter(history.meta.vts_rates[vtsIndexOf + 1][0])) {
+        latestVTS = history.meta.vts_rates[vtsIndexOf + 1];
+        vtsIndexOf = vtsIndexOf + 1;
       }
+      if(d && d.transactions) this.meta.transactions.push(...d.transactions);
+      const prev = day.clone();
       day.add(1, 'days');
+      // VTS fees are charged every 30th or last day of the month, whichever is last
+      if((prev.date() === 30 || (prev.date() < 30 && day.date() === 1)) && (isActiveVTS || prev.isSameOrAfter(latestVTS[0]))) {
+        isActiveVTS = true;
+        this.meta.transactions.push({
+          amount: latestVTS[1],
+          date: prev.format('L'),
+          text: 'Volatility Trading Strategies (VTS) Subscription',
+          type: 'fee'
+        })
+      }
     }
   }
 
@@ -253,7 +268,6 @@ export default class History extends Component {
     }
 
     delete this.meta.drag;
-    console.log('Fast?', fast)
   }
 
   render = () => {
@@ -331,6 +345,7 @@ export default class History extends Component {
         if(search) {
           if(this.props.history.meta.symbols_traded.find(s => s.startsWith(search)) && (t.symbol || '').startsWith(search)) return true;
           if(t.type.startsWith(search)) return true;
+          if((t.text || '').toLowerCase().includes(search)) return true;
           return false;
         }
         return true;
@@ -341,7 +356,7 @@ export default class History extends Component {
         { renderFilters() }
         {
           rows.map((t,i) => {
-            let text = t.text.toLowerCase();
+            let text = t.text.toLowerCase().replace('(vts)', '(VTS)');
             this.props.history.meta.symbols_traded.forEach(sym => {
               text = text.replace(sym, sym.toUpperCase())
             });

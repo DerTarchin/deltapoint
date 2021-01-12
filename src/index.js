@@ -112,7 +112,7 @@ class App extends Component {
       this.setState({ unlockError: 'Incorrect passphrase.'})
       return;
     }
-    console.log(data.dertarchinroth)
+    // console.log(data.dertarchinroth)
     console.log('%cLast scraped: ' + moment(data.dertarchinroth.meta.timestamp).format('MMMM Do YYYY, h:mm:ss a'), 'font-style: italic')
 
     // parse data
@@ -139,7 +139,7 @@ class App extends Component {
     });
 
     // sort symbols_traded in meta
-    acctData.meta.symbols_traded = acctData.meta.symbols_traded.sort((a,b) => a < b ? -1 : 1)
+    acctData.meta.symbols_traded = acctData.meta.symbols_traded.sort((a,b) => a < b ? -1 : 1);
 
     // apply adjustments
     this.adjData();
@@ -208,8 +208,8 @@ class App extends Component {
           adj.cash_balance += (tcontrib - d.total_contributions);
           adj.total_contributions = tcontrib;
         }
-        adj.pl = adj.balance - adj.total_contributions;
-        adj.plPerc = (adj.balance - adj.total_contributions) / adj.total_contributions * 100;
+        adj.pl = adj.balance - adj.total_contributions - d.vts_fees;
+        adj.plPerc = adj.pl / (adj.total_contributions + d.vts_fees) * 100;
         // if(view === '$') {
         // }
         // if(view === '%') {

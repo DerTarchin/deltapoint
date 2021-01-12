@@ -125,7 +125,8 @@ export default class Balances extends Component {
           max = getNumberProperties(round(this.getMaxContributions(activeDates[1]), 2)),
           ytdRange = 100 * ytd.value / max.value,
           ytdPerc = round(ytdRange, 0),
-          total = getNumberProperties(round(latest.adj.total_contributions + latest.total_fees, 2)),
+          vts = getNumberProperties(round(latest.vts_fees, 2)),
+          total = getNumberProperties(round(latest.adj.total_contributions + vts.value, 2)),
           pl = getNumberProperties(round(latest.adj.pl, 2)),
           plPerc = round(latest.adj.plPerc, 
                          Math.abs(latest.adj.plPerc) < 1 ? 2 :
@@ -249,18 +250,18 @@ export default class Balances extends Component {
                   </tr>
 
                   <tr className="label-row">
-                    <td>P/L Open</td>
+                    <td>P/L</td>
                     <td>Total {mobile ? 'Contrib.' : 'Contributions'}</td>
-                    <td>Commission {mobile ? null : 'Rate'}</td>
+                    <td>VTS Fees</td>
                   </tr>
                   <tr className="data-row">
                     <td>${pl.comma}</td>
-                    <td>${total.comma}</td>
-                    <td>${currComm[1]}</td>
+                    <td>${getNumberProperties(total.value - vts.value).comma}</td>
+                    <td>${vts.comma}</td>
                   </tr>
 
                   <tr className="label-row">
-                    <td>P/L Open %</td>
+                    <td>P/L %</td>
                     <td>Max {mobile ? 'Contrib.' : 'Contributions'}</td>
                     <td>Account Age</td>
                   </tr>

@@ -50,7 +50,7 @@ export default class Portfolio extends Component {
     // profit/loss type key 
     const valKey = dataView === '$' ? 'balance' : 'plPerc';
     // check if chart ends higher than it began
-    const isGain = data[datesKeys[0]].adj.pl < data[datesKeys[datesKeys.length - 1]].adj.pl;
+    const isGain = data[datesKeys[0]].adj[valKey] < data[datesKeys[datesKeys.length - 1]].adj[valKey];
     // check if color should be positive or negative
     const color = isGain ? colorMap.conservative : colorMap.other,
           colorProps = getColorProperties(color);
@@ -111,13 +111,21 @@ export default class Portfolio extends Component {
           mode: 'horizontal',
           scaleID: 'y-axis-0',
           value: 0,
-          borderColor: 'rgb(75, 192, 192)',
-          borderWidth: 4,
-          label: {
-            enabled: true,
-            content: '0'
-            // format label: https://github.com/chartjs/chartjs-plugin-annotation
-          }
+          // borderDash: [20, 5],
+          borderColor: 'hsla(220, 39%, 65%, .3)',
+          borderWidth: 2,
+          drawTime: 'beforeDatasetsDraw',
+          // label: {
+          //   enabled: true,
+          //   content: '0',
+          //   backgroundColor: 'hsla(220, 39%, 65%, .3)',
+          //   font: {
+          //     // color: 'hsla(220, 39%, 80%, .8)'
+          //     size: 25,
+          //     color: 'red'
+          //   }
+          //   // format label: https://github.com/chartjs/chartjs-plugin-annotation
+          // }
         }]
       },
       layout: {
