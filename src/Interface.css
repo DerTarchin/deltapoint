@@ -377,7 +377,7 @@ ul[class*="-opts"] span {
   user-select: none;
   top: 0;
   overflow: hidden;
-  transition: all .3s ease;
+  transition: all .15s ease;
 }
 .mobile .interface.shrink {
   transform: scale(.95) translateY(-5px);

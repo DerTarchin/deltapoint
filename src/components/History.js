@@ -8,6 +8,7 @@ import {
   p5map,
   colorMap,
   getLatest,
+  constrain,
   formatMoney,
   shouldUpdate,
   generateAggs,
@@ -176,9 +177,9 @@ export default class History extends Component {
     })
   }
 
-  setSym = sym => {
-    if(this.refs.input) this.refs.input.value = '';
-    this.setState({ selectedSymbol: sym, search: '', toggledYears: [] });
+  setSym = (sym, skipSearch) => {
+    if(this.refs.input && !skipSearch) this.refs.input.value = '';
+    this.setState({ selectedSymbol: sym, search: skipSearch ? this.state.search : '', toggledYears: [] });
   }
 
   getSym = (props=this.props, state=this.state) => {
@@ -204,7 +205,8 @@ export default class History extends Component {
       lastX: x,
       lastY: y,
       target: e.target,
-      time: performance.now()
+      time: performance.now(),
+      interface: document.querySelector('.app .interface')
     }
   }
 
@@ -217,15 +219,31 @@ export default class History extends Component {
 
     // if initial move direction, determine what action to perform
     if(!drag.action) {
+      // if details pane is open
       if(this.getSym() && this.refs.details) {
+        // if swiping to the right, hide details
         if(x > drag.startX && Math.abs(y - drag.startY) < 3) {
           drag.action = 'exit_sym';
           this.refs.details.style.transitionDuration = '0s';
-        } else {
+        } 
+        // if swiping down when at the top of scroll, hide window
+        else if(y > drag.startY && Math.abs(x - drag.startX) < 3 && !this.refs.symdetails.scrollTop) {
+          drag.action = 'exit';
+          this.refs.window.style.transitionDuration = '0s';
+          drag.interface.style.transitionDuration = '0s';
+        }
+        else {
           delete this.meta.drag;
           return;
         };
       }
+      // if on main transactions page (swiping from top bar, or swiping down anywhere when no scroll)
+      else if(getClosestParent(drag.target, '.search') || (y > drag.startY && Math.abs(x - drag.startX) < 3 && !(this.refs.transactions || {}).scrollTop)) {
+        drag.action = 'exit';
+        this.refs.window.style.transitionDuration = '0s';
+        drag.interface.style.transitionDuration = '0s';
+      }
+      // unknown other cases
       else {
         delete this.meta.drag
         return;
@@ -234,8 +252,21 @@ export default class History extends Component {
 
     if(drag.action === 'exit_sym') {
       // calculate how much to move window
-      drag.percDragged = p5map(x, drag.startX, window.screen.width + drag.startX, 0, 100);
+      drag.percDragged = constrain(p5map(x, drag.startX, window.screen.width + drag.startX, 0, 100), 0, 100);
       this.refs.details.style.left = drag.percDragged + '%';
+    }
+
+    if(drag.action === 'exit') {
+      // calculate how much to move window
+      drag.dragged = constrain(p5map(y, drag.startY, window.screen.height + drag.startY, 40, window.screen.height), 40, window.screen.height);
+      const perc = constrain(p5map(y, drag.startY, window.screen.height + drag.startY, 0, 100), 0, 100);
+      this.refs.window.style.top = drag.dragged + 'px';
+      // calculate the transition of the background
+      const cutoff = 30;
+      drag.interface.style.transitionDuration = '0s';
+      drag.interface.style.transform = `scale(${constrain(p5map(perc, 0, cutoff, .95, 1), .95, 1)}) translateY(${constrain(p5map(perc, 0, cutoff, -5, 0), -5, 0)}px)`;
+      drag.interface.style.background = `rgba(0,0,30,${constrain(p5map(perc, 0, cutoff, .35, 0), 0, .35)})`;
+      drag.interface.style.borderRadius = `${constrain(p5map(perc, 0, cutoff, 15, 0), 0, 15)}px`;
     }
 
     drag.dirX = drag.lastX > x ? 'left' : 'right';
@@ -258,11 +289,32 @@ export default class History extends Component {
       this.refs.details.style.left = '';
       this.refs.details.style.transitionDuration = '';
       if(drag.dirX === 'right' && (drag.percDragged > 40 || fast)) {
+        if(fast) this.refs.details.style.transitionDuration = '.1s';
         this.refs.details.classList.remove('show');
-        if(fast) this.refs.details.style.transitionDuration = '.15s';
+        // clear the temporary high speed transition
         setTimeout(e => {
-          this.setSym();
-          if(!this.getSym()) this.refs.details.style.transitionDuration = '';
+          if(this.refs.details) this.refs.details.style.transitionDuration = '';
+        }, fast ? 100 : 350)
+      }
+    }
+
+    if(drag.action === 'exit') {
+      this.refs.window.style.top = '';
+      this.refs.window.style.transitionDuration = '';
+      drag.interface.style.transitionDuration = '';
+      drag.interface.style.transform = '';
+      drag.interface.style.background = '';
+      drag.interface.style.borderRadius = '';
+      if(drag.dirY === 'down' && (drag.dragged > (window.screen.height * .3) || fast)) {
+        if(fast) {
+          this.refs.window.style.transitionDuration = '.15s';
+          drag.interface.style.transitionDuration = '.15s';
+        }
+        this.props.close();
+        // clear the temporary high speed transition
+        setTimeout(e => {
+          if(drag.interface) drag.interface.style.transitionDuration = '';
+          if(this.refs.window) this.refs.window.style.transitionDuration = '';
         }, fast ? 150 : 350)
       }
     }
@@ -357,12 +409,13 @@ export default class History extends Component {
         {
           rows.map((t,i) => {
             let text = t.text.toLowerCase().replace('(vts)', '(VTS)');
+            const date = moment(t.date);
             this.props.history.meta.symbols_traded.forEach(sym => {
               text = text.replace(sym, sym.toUpperCase())
             });
             return <div key={i} className={`row ${t.symbol ? 'clickable' : ''}`} title={t.text} onClick={t.symbol ? e => {
               if(t.symbol === this.state.selectedSymbol) return;
-              this.setSym(t.symbol);
+              this.setSym(t.symbol, true);
             } : null}>
               <div 
                 className="banner" 
@@ -373,7 +426,7 @@ export default class History extends Component {
               />
               <div className="row-content hide-scroll">
                 <div className="meta">
-                  <small title={t.date}>{moment(t.date).format('MMM D, YYYY')}</small>
+                  <small title={t.date}>{date.format('MMM D, YYYY')}</small>
                   <p>{cap(t.type === 'adj' ? 'adjustment' : t.type)} {((['buy','sell'].includes(t.type) && t.symbol) || '').toUpperCase()}</p>
                 </div>
                 <div className="meta">
@@ -408,6 +461,10 @@ export default class History extends Component {
                     <p>{text}</p>
                   </div>
                 }
+                <div className="meta text">
+                  <small>Time</small>
+                  <p style={{ textTransform: 'initial' }}>{date.format('h:mm:ss a')}</p>
+                </div>
               </div>
             </div>
           })
@@ -448,7 +505,7 @@ export default class History extends Component {
         { clear }
         { this.props.mobile && balance }
       </div>;
-      if(search && search !== sym) {
+      if(search && search !== sym && sym.includes(search)) {
         title = <div className="sym">
           { search.toUpperCase() }<span>{ sym.replace(search, '').toUpperCase() }</span>
           { lData[sym] && activeDot }
@@ -459,7 +516,7 @@ export default class History extends Component {
       let currPL = lData[sym] && formatMoney((lData[sym].c - lData[sym].avg) * lData[sym].shares), 
           currPLPerc = lData[sym] && PERC((lData[sym].c - lData[sym].avg) / lData[sym].avg * 100);
       return [
-        <div className="details-content hide-scroll" key={sym}>
+        <div className="details-content hide-scroll" key={sym} ref="symdetails">
           { title }
           {
             !this.props.mobile && [
@@ -670,6 +727,7 @@ export default class History extends Component {
           }}
         >
           <div 
+            ref="window"
             className="history-window"
             onTouchStart={this.moveWindowStart} 
             onTouchMove={this.moveWindow} 

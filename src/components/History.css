@@ -59,13 +59,13 @@
   border-bottom-right-radius: 0;
   top: 40px;
   transform: translateZ(0);
-  transition: top .1s ease;
-  overflow: visible;
+  transition: top .2s ease;
 }
 .mobile .history:not(.show) .history-window {
   top: 100%;
   transform: translateZ(0);
   transition: top .2s ease;
+  overflow: visible;
 }
 
 .history svg {
