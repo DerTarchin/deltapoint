@@ -133,7 +133,13 @@ export default class History extends Component {
     // if showing stock opts (in mobile)
     if(!prevState.showSymbolList && this.state.showSymbolList) this.fadeInSymbols();
     // if showing stock opts (in regular)
-    if(!this.props.mobile && this.getSym(prevProps, prevState) && !this.getSym()) this.fadeInSymbols();
+    if(!mobile && this.getSym(prevProps, prevState) && !this.getSym()) this.fadeInSymbols();
+    // if showing details page, delay rendering of transactions (in mobile)
+    if(mobile && !prevState.selectedSymbol && this.state.selectedSymbol) {
+      setTimeout(() => {
+        ((this.refs.detailtransactions || {}).style || {}).display = '';
+      }, 350)
+    }
   }
 
   handleKey = e => {
@@ -149,6 +155,7 @@ export default class History extends Component {
 
   fadeInRows = delay => {
     if(!this.refs.transactions) return;
+    this.refs.transactions.scrollTop = 0;
     // sequentially fade in first 15 rows
     const rows = [...this.refs.transactions.querySelectorAll('.row')];
     // animate in
@@ -294,6 +301,7 @@ export default class History extends Component {
         // clear the temporary high speed transition
         setTimeout(e => {
           if(this.refs.details) this.refs.details.style.transitionDuration = '';
+          this.setSym();
         }, fast ? 100 : 350)
       }
     }
@@ -385,14 +393,18 @@ export default class History extends Component {
 
     const renderSymbolList = () => {
       return <div className="symbols-list">
-        { renderStockOpts() }
+        {
+          this.props.mobile ? <div className="symbols-list-wrapper">{ renderStockOpts() }</div>
+          : renderStockOpts()
+        }
       </div>
     }
 
-    const renderTransactions = () => {
-      if(this.state.showSymbolList) return renderSymbolList();
+    const renderTransactions = override => {
+      if(!override && this.state.showSymbolList) return renderSymbolList();
 
       let rows = this.meta.transactions.filter(t => {
+        if(override) return ['buy','sell','dividend'].includes(t.type) && (t.symbol || '').includes(override);
         if(filter.length && !filter.includes(t.type)) return false;
         if(search) {
           if(this.props.history.meta.symbols_traded.find(s => s.startsWith(search)) && (t.symbol || '').startsWith(search)) return true;
@@ -402,10 +414,10 @@ export default class History extends Component {
         }
         return true;
       }).reverse();
-      if(!this.state.showAllTransactions || !this.props.show) rows = rows.slice(0, 17);
+      if(!override && (!this.state.showAllTransactions || !this.props.show)) rows = rows.slice(0, 17);
 
       return <div className="transactions" ref="transactions">
-        { renderFilters() }
+        { !override && renderFilters() }
         {
           rows.map((t,i) => {
             let text = t.text.toLowerCase().replace('(vts)', '(VTS)');
@@ -470,7 +482,7 @@ export default class History extends Component {
           })
         }
         {
-          this.state.showAllTransactions ? (
+          override || this.state.showAllTransactions ? (
             <div className="footer">
               <b>{ getNumberProperties(rows.length).comma }</b> transaction{rows.length === 1 ? '' : 's'}
             </div>
@@ -711,6 +723,16 @@ export default class History extends Component {
                 i !== total.length - 1 && <div key="div" className="divider" />
               ]
             })
+          }
+
+          { 
+            this.props.mobile && [
+              <div key="div" className="divider" />,
+              <div className="detail-transactions" ref="detailtransactions" key="details" style={{ display: 'none' }}>
+                All Transactions
+                { renderTransactions(sym) }
+              </div> 
+            ]
           }
         </div>,
         renderStockOpts()

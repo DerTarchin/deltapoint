@@ -171,7 +171,11 @@
   user-select: none;
   border: 2px solid transparent;
 }
-.history .pill:not(.active):not(:hover) {
+.history:not(.mobile) .pill:not(.active):not(:hover) {
+  opacity: .7;
+  box-shadow: none!important;
+}
+.history.mobile .pill:not(.active) {
   opacity: .7;
   box-shadow: none!important;
 }
@@ -290,9 +294,7 @@
   position: relative;
   user-select: none;
 }
-.history.mobile .details .sym {
 
-}
 .history .details .sym .balance {
   position: absolute;
   top: -5px;
@@ -458,6 +460,10 @@
   width: 10px;
   margin-right: 5px;
 }
+.history.mobile .details .year .toggle .percent-tag {
+  transform: scale(.8);
+  margin-left: 2px;
+}
 
 
 
@@ -525,7 +531,6 @@
   margin-right: -10px;
 }
 .history .empty-details {
-  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -538,6 +543,16 @@
   text-align: center;
   margin: 0;
   padding: 0;
+}
+.history.mobile .detail-transactions {
+  margin-top: 60px;
+}
+.history.mobile .details .transactions {
+  padding: 0;
+  margin-top: 20px;
+}
+.history.mobile .details .footer {
+  margin-bottom: 0;
 }
 
 .history .clear {
@@ -590,9 +605,21 @@
   padding: 40px;
   flex-grow: 1;
 }
+.history.mobile .symbols-list {
+  padding: 40px 15px;
+  display: block;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
 .history .symbols-list .stock-opts {
   display: block;
   text-align: center;
+}
+.history.mobile .symbols-list-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
 }
 .history .symbols-list .stock-opts li {
   font-size: 20px;
