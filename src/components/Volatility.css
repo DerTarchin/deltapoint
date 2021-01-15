@@ -41,3 +41,7 @@
   left: auto;
   right: 4px;
 }
+
+.no-animations #volatility .bar {
+  transition: none;
+}

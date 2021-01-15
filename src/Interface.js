@@ -237,8 +237,13 @@ export default class Interface extends Component {
       onDateChange
     } = this.props;
 
+    const classes = ['interface'];
+    if(this.state.showHelp || this.state.showHistory) classes.push('blur');
+    if(!this.props.allowAnimations) classes.push('no-animations');
+
+
     return (
-      <div className={`interface ${this.state.showHelp || this.state.showHistory ? 'blur' : ''}`}>
+      <div className={classes.join(' ')}>
         <div className="bg" />
         
         <div ref="header" className="interface-header">

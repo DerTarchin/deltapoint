@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { ContentEditable } from './components';
 import Interface from './Interface'
 import InterfaceMobile from './InterfaceMobile'
-import { decrypt } from './utils';
+import { decrypt, round } from './utils';
 import anime from 'animejs';
 import moment from 'moment';
 import { rotatephone } from './utils/icons';
@@ -112,7 +112,7 @@ class App extends Component {
       this.setState({ unlockError: 'Incorrect passphrase.'})
       return;
     }
-    // console.log(data.dertarchinroth)
+    console.log(data.dertarchinroth)
     console.log('%cLast scraped: ' + moment(data.dertarchinroth.meta.timestamp).format('MMMM Do YYYY, h:mm:ss a'), 'font-style: italic')
 
     // parse data
@@ -208,8 +208,8 @@ class App extends Component {
           adj.cash_balance += (tcontrib - d.total_contributions);
           adj.total_contributions = tcontrib;
         }
-        adj.pl = adj.balance - adj.total_contributions - d.vts_fees;
-        adj.plPerc = adj.pl / (adj.total_contributions + d.vts_fees) * 100;
+        adj.pl = round(adj.balance - adj.total_contributions - d.vts_fees, 2);
+        adj.plPerc = round(adj.pl / (adj.total_contributions + d.vts_fees) * 100, 2);
         // if(view === '$') {
         // }
         // if(view === '%') {
@@ -264,6 +264,9 @@ class App extends Component {
       feeAdjustments: this.state.feeAdjustments,
       contributionAdjustments: this.state.contributionAdjustments,
       onSettingsChange: this.onSettingsChange,
+
+      // allowAnimations: !isMobile
+      allowAnimations: false,
     }
 
     return (

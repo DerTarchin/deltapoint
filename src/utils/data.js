@@ -1,4 +1,5 @@
 import moment from 'moment';
+import { round } from '../utils';
 
 // must be a valid date within the data otherwise an infinite loop will ensue
 export const getLatest = (data, date=moment(), up) => {
@@ -219,6 +220,6 @@ export const generateAggs = (props, stopDate=moment()) => {
       day.add(1, 'days');
     }
   });
-
+console.log(tradeDetails)
   return tradeDetails;
 }

@@ -536,6 +536,7 @@
   justify-content: center;
   align-items: center;
   padding: 30px;
+  min-height: 100%;
 }
 .history .empty-details .stock-opts {
   width: 100%;
@@ -615,7 +616,7 @@
   display: block;
   text-align: center;
 }
-.history.mobile .symbols-list-wrapper {
+.history .symbols-list-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;

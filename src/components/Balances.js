@@ -33,7 +33,7 @@ export default class Balances extends Component {
     })
 
     // ANIMATE TRANSITIONS
-    if(this.state.showData || prevProps.mobile) return;
+    if(this.state.showData || prevProps.mobile || !this.props.allowAnimations) return;
     const old = getLatest(prevProps.data, prevProps.activeDates[1]).data,
           latest = getLatest(this.props.data, this.props.activeDates[1]).data,
           perc = this.props.dataView === '%';

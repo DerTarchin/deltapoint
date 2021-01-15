@@ -83,7 +83,9 @@ export default class History extends Component {
         if(this.refs.filters) this.refs.filters.scrollLeft = 0;
         this.fadeInRows(300);
         if(!mobile) {
-          setTimeout(e => this.refs.input.focus(), 50);
+          setTimeout(e => {
+            if(this.refs.input) this.refs.input.focus();
+          }, 50);
           window.addEventListener('keydown', this.handleKey);
         }
         setTimeout(e => {
@@ -495,7 +497,7 @@ export default class History extends Component {
 
     const renderDetails = () => {
       if(!sym && this.props.mobile) return null;
-      if(!sym) return <div className="empty-details"> { renderStockOpts() } </div>;
+      if(!sym || !this.meta.aggs) return <div className="empty-details"> { renderStockOpts() } </div>;
 
       const aggs = this.meta.aggs[sym];
       const activeDot = <div className="active-dot" style={{ background: colorMap.conservative, boxShadow: glow(getColorProperties(colorMap.conservative)) }} title="Actively traded stock" />
@@ -504,7 +506,7 @@ export default class History extends Component {
       if(small.length === 1) small = '0' + small;
       const balance = (
         <div key="balance" className="balance">
-          <span>{getNumberProperties(Math.ceil(aggs.total_pl)).comma}</span>.<small>{small}</small>
+          <span>{getNumberProperties(Math.floor(aggs.total_pl)).comma}</span>.<small>{small}</small>
           <div className={`percent percent-tag ${aggs.total_pl < 0 ? 'neg' : 'pos'}`}>
             { arrow }
             { PERC(aggs.total_pl_perc) }%

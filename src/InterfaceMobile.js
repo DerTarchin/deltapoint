@@ -323,9 +323,13 @@ export default class InterfaceMobile extends Component {
           sep = sepFrmt(dateFrom, dateTo),
           datesRender = (dateFrom === dateTo ? formatted[0] : `${formatted[0]} - ${formatted[1]}`);
 
+    const classes = ['interface'];
+    if(this.state.showHistory) classes.push('shrink');
+    if(!this.props.allowAnimations) classes.push('no-animations');
+
     return [
       <div 
-        className={`interface ${this.state.showHistory ? 'shrink' : ''}`}
+        className={classes.join(' ')}
         key="interface"
         ref="interface"
         onTouchStart={this.moveHeaderStart} 

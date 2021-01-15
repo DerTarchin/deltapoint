@@ -163,3 +163,8 @@
   text-align: center;
   color: black;
 }
+
+.no-animations #breakdown .main svg,
+#breakdown .main circle {
+  transition: none;
+}

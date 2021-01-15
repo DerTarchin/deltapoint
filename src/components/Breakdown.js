@@ -29,12 +29,15 @@ const VTS = {
       'gld'
     ],
     label: 'VTS Tactical',
-    allocation: .27 // 30% of 90% of total
+    allocation: .225 // 25% of 90% of total
   },
   aggressive: {
-    tickers: ['svxy','vixy'],
+    tickers: [
+      'svxy',
+      'vixy'
+    ],
     label: 'VTS Aggressive',
-    allocation: .18 // 20% of 90% of total
+    allocation: .225 // 25% of 90% of total
   },
   conservative: {
     tickers: [
@@ -46,16 +49,17 @@ const VTS = {
       'vxx',
     ],
     label: 'VTS Conservative',
-    allocation: .18 // 20% of 90% of total
+    allocation: .225 // 25% of 90% of total
   },
   rotation: {
     tickers: [
       'vpu', 
-      'vig', 
-      'vglt'
+      'vig', // deprecated
+      'vglt',
+      'qld', // 2x QQQ
     ],
     label: 'VTS Defensive Rotation',
-    allocation: .27 // 30% of 90% of total
+    allocation: .225 // 25% of 90% of total
   }
 }
 
