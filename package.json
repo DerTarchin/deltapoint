@@ -31,7 +31,7 @@
     "gh-pages": "^2.0.1",
     "lodash": "^4.17.19",
     "merge": ">=1.2.1",
-    "react-dev-utils": "^10.2.1"
+    "react-dev-utils": "^11.0.4"
   },
   "browserslist": {
     "production": [
